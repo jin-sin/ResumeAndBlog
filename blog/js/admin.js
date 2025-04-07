@@ -2,7 +2,7 @@
 import { renderMarkdown } from './markdown.js';
 import { savePost, getAllPosts, getPost, deletePost } from './storage.js';
 import { verifyPassword, hasValidAccess, getAdminUrl } from './auth.js';
-import { updateSitemap } from './sitemap.js';
+import { updateSitemapXML } from './sitemap-updater.js';
 
 // DOM elements
 const adminContent = document.getElementById('admin-content');
@@ -133,12 +133,12 @@ async function loadPostList() {
                 const postId = e.target.getAttribute('data-id');
                 await deletePost(postId);
                 
-                // Update sitemap after deleting post
+                // Update sitemap.xml after deleting post
                 try {
-                    await updateSitemap();
-                    console.log('Sitemap updated after post deletion');
+                    await updateSitemapXML();
+                    console.log('sitemap.xml updated after post deletion');
                 } catch (error) {
-                    console.error('Error updating sitemap:', error);
+                    console.error('Error updating sitemap.xml:', error);
                 }
                 
                 await loadPostList();
@@ -307,12 +307,12 @@ async function showEditor(postId = null) {
                 }
             }
             
-            // Update sitemap after saving post
+            // Update sitemap.xml after saving post
             try {
-                await updateSitemap();
-                console.log('Sitemap updated after post save');
+                await updateSitemapXML();
+                console.log('sitemap.xml updated after post save');
             } catch (sitemapError) {
-                console.error('Error updating sitemap:', sitemapError);
+                console.error('Error updating sitemap.xml:', sitemapError);
                 // Non-critical error, continue with success flow
             }
             
