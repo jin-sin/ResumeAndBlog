@@ -3,23 +3,30 @@ const STORAGE_KEY = 'blog_posts';
 
 // Save a post to local storage
 export async function savePost(post) {
-    const posts = await getAllPosts();
-    
-    // Check if post already exists (for updating)
-    const existingIndex = posts.findIndex(p => p.id === post.id);
-    
-    if (existingIndex >= 0) {
-        // Update existing post
-        posts[existingIndex] = post;
-    } else {
-        // Add new post
-        posts.push(post);
+    try {
+        const posts = await getAllPosts();
+        
+        // Check if post already exists (for updating)
+        const existingIndex = posts.findIndex(p => p.id === post.id);
+        
+        if (existingIndex >= 0) {
+            // Update existing post
+            posts[existingIndex] = post;
+        } else {
+            // Add new post
+            posts.push(post);
+        }
+        
+        // Save to local storage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+        
+        console.log('Post saved successfully:', post.id);
+        return post;
+    } catch (error) {
+        console.error('Error saving post:', error);
+        alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+        throw error;
     }
-    
-    // Save to local storage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-    
-    return post;
 }
 
 // Get all posts from local storage

@@ -6,15 +6,14 @@ export function renderMarkdown(text) {
     
     // Using the marked library
     if (typeof marked !== 'undefined') {
-        // Configure marked options
-        marked.setOptions({
-            breaks: true,       // Convert line breaks marked with two spaces to <br>
-            gfm: true,          // GitHub Flavored Markdown
-            headerIds: true,    // Add IDs to headers
-            sanitize: false     // Allow HTML
-        });
-        
-        return marked.parse(text);
+        // The marked library is already configured in the HTML
+        // with the necessary options for tables and line breaks
+        try {
+            return marked.parse(text);
+        } catch (e) {
+            console.error('Error parsing markdown:', e);
+            return convertMarkdownFallback(text);
+        }
     } else {
         console.error('Marked library not loaded');
         return convertMarkdownFallback(text);
@@ -45,6 +44,26 @@ function convertMarkdownFallback(text) {
     
     // Handle images
     text = text.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
+    
+    // Very basic table support (doesn't handle all table formats)
+    text = text.replace(/^\|(.*)\|$/gm, function(match, content) {
+        const cells = content.split('|').map(cell => cell.trim());
+        const isHeaderRow = cells.some(cell => cell.match(/^-+$/));
+        
+        if (isHeaderRow) {
+            return ''; // Skip header separator row
+        }
+        
+        const cellTag = match.match(/^\|[-:\s|]+\|$/) ? 'th' : 'td';
+        const cellsHtml = cells.map(cell => `<${cellTag}>${cell}</${cellTag}>`).join('');
+        
+        return `<tr>${cellsHtml}</tr>`;
+    });
+    
+    // Wrap table rows with table tags
+    text = text.replace(/(<tr>.*<\/tr>\n)+/g, function(match) {
+        return `<table>${match}</table>`;
+    });
     
     // Handle line breaks with two spaces at end of line OR <br> tags
     text = text.replace(/  \n/g, '<br>\n');

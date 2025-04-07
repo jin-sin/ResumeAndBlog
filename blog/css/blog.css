@@ -63,6 +63,9 @@
     border-collapse: collapse;
     width: 100%;
     margin: 1em 0;
+    table-layout: auto;
+    overflow-x: auto;
+    display: block;
 }
 
 .post-content th, 
@@ -70,14 +73,33 @@
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    min-width: 100px;
 }
 
 .post-content th {
     background-color: #f4f4f4;
+    font-weight: bold;
 }
 
 .post-content tr:nth-child(even) {
     background-color: #f9f9f9;
+}
+
+.post-content tr {
+    border-top: 1px solid #ddd;
+}
+
+/* Table alignment classes */
+.post-content table .text-left {
+    text-align: left;
+}
+
+.post-content table .text-center {
+    text-align: center;
+}
+
+.post-content table .text-right {
+    text-align: right;
 }
 
 /* Preview container styles */

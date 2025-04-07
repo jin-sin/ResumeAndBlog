@@ -344,7 +344,30 @@
     </footer>
 
     <!-- Load scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.5/marked.min.js"></script>
+    <script>
+        // Configure marked with table support
+        if (typeof marked !== 'undefined') {
+            // For marked v9+
+            try {
+                marked.use({
+                    gfm: true,
+                    breaks: true,
+                    mangle: false,
+                    headerIds: true
+                });
+            } catch (e) {
+                // Fallback for older versions
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    headerIds: true,
+                    mangle: false,
+                    sanitize: false
+                });
+            }
+        }
+    </script>
     <script src="js/markdown.js" type="module"></script>
     <script src="js/storage.js" type="module"></script>
     <script src="js/auth.js" type="module"></script>

@@ -188,7 +188,7 @@ async function showEditor(postId = null) {
                 <div id="preview-container" class="preview-container" style="display: none;"></div>
                 
                 <div class="buttons-container">
-                    <button type="submit" class="submit-btn">저장</button>
+                    <button type="submit" class="submit-btn" id="submit-btn">저장</button>
                     <button type="button" class="preview-btn" id="preview-btn">미리보기</button>
                 </div>
             </form>
@@ -227,10 +227,13 @@ async function showEditor(postId = null) {
         previewBtn.textContent = previewContainer.style.display === 'none' ? '미리보기' : '미리보기 닫기';
     });
     
-    // Form submission
-    const form = document.getElementById('editor-form');
-    form.addEventListener('submit', async (e) => {
+    // Form submission - direct DOM handling
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.addEventListener('click', handlePostSubmit);
+    
+    async function handlePostSubmit(e) {
         e.preventDefault();
+        console.log('Submit button clicked');
         
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
@@ -240,27 +243,77 @@ async function showEditor(postId = null) {
             return;
         }
         
-        // Create or update post
-        const post = {
-            id: postId || Date.now().toString(),
-            title: title,
-            content: content,
-            date: postId ? (await getPost(postId)).date : new Date().toISOString()
-        };
-        
-        // Save the post
-        await savePost(post);
-        
-        // Redirect to admin panel
-        window.location.hash = '#/';
-    });
+        try {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '저장 중...';
+            
+            const newDate = new Date().toISOString();
+            let oldDate = newDate;
+            
+            if (postId) {
+                const existingPost = await getPost(postId);
+                oldDate = existingPost ? existingPost.date : newDate;
+            }
+            
+            // Create post object
+            const post = {
+                id: postId || Date.now().toString(),
+                title: title,
+                content: content,
+                date: oldDate
+            };
+            
+            console.log('Saving post:', post);
+            
+            // Direct localStorage operation as a fallback
+            try {
+                // First try the normal savePost function
+                await savePost(post);
+            } catch (saveError) {
+                console.error('Error using savePost function:', saveError);
+                
+                // Fallback to direct localStorage
+                const STORAGE_KEY = 'blog_posts';
+                let posts = [];
+                
+                try {
+                    const existingPostsJson = localStorage.getItem(STORAGE_KEY);
+                    if (existingPostsJson) {
+                        posts = JSON.parse(existingPostsJson);
+                    }
+                    
+                    // Find and update existing post or add new one
+                    const existingIndex = posts.findIndex(p => p.id === post.id);
+                    if (existingIndex >= 0) {
+                        posts[existingIndex] = post;
+                    } else {
+                        posts.push(post);
+                    }
+                    
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+                    console.log('Post saved using direct localStorage operation');
+                } catch (localStorageError) {
+                    throw new Error(`Failed localStorage fallback: ${localStorageError.message}`);
+                }
+            }
+            
+            // Show success message and redirect
+            alert('포스트가 저장되었습니다.');
+            window.location.hash = '#/';
+            
+        } catch (error) {
+            console.error('Error saving post:', error);
+            alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+            submitBtn.disabled = false;
+            submitBtn.textContent = '저장';
+        }
+    }
 }
 
 // Generate and show admin URL
 function showAdminUrl() {
     const url = getAdminUrl();
     console.log('Admin URL:', url);
-    // You could display this URL in the UI or alert it if needed
 }
 
 // Initialize

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블로그 디버깅</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #3DDC84;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        button {
+            background-color: #3DDC84;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #32b16c;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 300px;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>블로그 시스템 디버깅</h1>
+        
+        <div class="section">
+            <h2>로컬 저장소 테스트</h2>
+            <button id="testLocalStorage">로컬 저장소 테스트</button>
+            <div id="storageStatus" class="status"></div>
+        </div>
+        
+        <div class="section">
+            <h2>마크다운 렌더링 테스트</h2>
+            <textarea id="markdownInput">
+# 제목
+
+이것은 테스트입니다.
+
+| 이름 | 직업 |
+|------|------|
+| 홍길동 | 개발자 |
+
+**굵은 텍스트**와 *기울임 텍스트*
+            </textarea>
+            <button id="renderMarkdown">렌더링 테스트</button>
+            <div id="markdownOutput" style="margin-top: 15px; border: 1px solid #ddd; padding: 15px;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>포스트 저장 테스트</h2>
+            <textarea id="postContent">
+{
+  "id": "test123",
+  "title": "테스트 포스트",
+  "content": "# 테스트\n\n이것은 테스트 포스트입니다.",
+  "date": "2025-04-08T12:00:00.000Z"
+}
+            </textarea>
+            <button id="savePostTest">포스트 저장 테스트</button>
+            <div id="saveStatus" class="status"></div>
+        </div>
+        
+        <div class="section">
+            <h2>저장된 포스트 확인</h2>
+            <button id="listPosts">모든 포스트 보기</button>
+            <pre id="postsOutput"></pre>
+        </div>
+        
+        <div class="section">
+            <h2>저장소 초기화</h2>
+            <button id="clearStorage">로컬 저장소 비우기</button>
+            <div id="clearStatus" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 로컬 저장소 테스트
+            document.getElementById('testLocalStorage').addEventListener('click', function() {
+                const storageStatus = document.getElementById('storageStatus');
+                try {
+                    // Test if localStorage is accessible
+                    localStorage.setItem('test_key', 'test_value');
+                    const testValue = localStorage.getItem('test_key');
+                    localStorage.removeItem('test_key');
+                    
+                    if (testValue === 'test_value') {
+                        storageStatus.className = 'status success';
+                        storageStatus.textContent = '로컬 저장소가 정상적으로 작동합니다.';
+                    } else {
+                        storageStatus.className = 'status error';
+                        storageStatus.textContent = '로컬 저장소 읽기/쓰기 오류가 발생했습니다.';
+                    }
+                } catch (e) {
+                    storageStatus.className = 'status error';
+                    storageStatus.textContent = '로컬 저장소 오류: ' + e.message;
+                }
+            });
+            
+            // 마크다운 렌더링 테스트
+            document.getElementById('renderMarkdown').addEventListener('click', function() {
+                const markdownInput = document.getElementById('markdownInput').value;
+                const markdownOutput = document.getElementById('markdownOutput');
+                
+                try {
+                    // Load marked.js from the parent page or CDN
+                    if (typeof marked === 'undefined') {
+                        // Load marked from CDN if not available
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/marked@9.1.5/marked.min.js';
+                        script.onload = function() {
+                            markdownOutput.innerHTML = marked.parse(markdownInput);
+                        };
+                        document.head.appendChild(script);
+                    } else {
+                        markdownOutput.innerHTML = marked.parse(markdownInput);
+                    }
+                } catch (e) {
+                    markdownOutput.innerHTML = '<div class="error">마크다운 렌더링 오류: ' + e.message + '</div>';
+                }
+            });
+            
+            // 포스트 저장 테스트
+            document.getElementById('savePostTest').addEventListener('click', function() {
+                const postContent = document.getElementById('postContent').value;
+                const saveStatus = document.getElementById('saveStatus');
+                
+                try {
+                    const post = JSON.parse(postContent);
+                    const STORAGE_KEY = 'blog_posts';
+                    
+                    // Get existing posts
+                    let posts = [];
+                    const existingPosts = localStorage.getItem(STORAGE_KEY);
+                    if (existingPosts) {
+                        posts = JSON.parse(existingPosts);
+                    }
+                    
+                    // Check if post already exists
+                    const existingIndex = posts.findIndex(p => p.id === post.id);
+                    if (existingIndex >= 0) {
+                        posts[existingIndex] = post;
+                    } else {
+                        posts.push(post);
+                    }
+                    
+                    // Save posts
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+                    
+                    saveStatus.className = 'status success';
+                    saveStatus.textContent = '포스트가 성공적으로 저장되었습니다.';
+                } catch (e) {
+                    saveStatus.className = 'status error';
+                    saveStatus.textContent = '포스트 저장 오류: ' + e.message;
+                }
+            });
+            
+            // 저장된 포스트 확인
+            document.getElementById('listPosts').addEventListener('click', function() {
+                const postsOutput = document.getElementById('postsOutput');
+                
+                try {
+                    const STORAGE_KEY = 'blog_posts';
+                    const posts = localStorage.getItem(STORAGE_KEY);
+                    
+                    if (posts) {
+                        const parsedPosts = JSON.parse(posts);
+                        postsOutput.textContent = JSON.stringify(parsedPosts, null, 2);
+                    } else {
+                        postsOutput.textContent = '저장된 포스트가 없습니다.';
+                    }
+                } catch (e) {
+                    postsOutput.textContent = '포스트 로드 오류: ' + e.message;
+                }
+            });
+            
+            // 저장소 초기화
+            document.getElementById('clearStorage').addEventListener('click', function() {
+                const clearStatus = document.getElementById('clearStatus');
+                
+                try {
+                    const STORAGE_KEY = 'blog_posts';
+                    localStorage.removeItem(STORAGE_KEY);
+                    clearStatus.className = 'status success';
+                    clearStatus.textContent = '로컬 저장소가 초기화되었습니다.';
+                } catch (e) {
+                    clearStatus.className = 'status error';
+                    clearStatus.textContent = '로컬 저장소 초기화 오류: ' + e.message;
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.5/marked.min.js"></script>
+</body>
+</html>
