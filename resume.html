@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신규리 이력서</title>
+    <style>
+        :root {
+            --primary-color: #3DDC84; /* 안드로이드 녹색 */
+            --secondary-color: #083042;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 40px;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid var(--primary-color);
+            object-fit: cover;
+        }
+
+        .name-title {
+            flex-grow: 1;
+            padding-left: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 1.5em;
+            color: var(--primary-color);
+        }
+
+        .contact-info {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+
+        .contact-icon {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .section-content {
+            padding-left: 15px;
+        }
+
+        .about-me {
+            background-color: white;
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .experience-item, .education-item, .project-item {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .sub-list {
+            padding-left: 20px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+        }
+
+        .job-title, .degree, .project-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .company, .school, .project-tech {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .date {
+            color: #777;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .skill-category {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .skill-category h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .skill-item {
+            background-color: var(--light-gray);
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+
+        .skill-highlight {
+            background-color: rgba(61, 220, 132, 0.2);
+            border: 1px solid var(--primary-color);
+        }
+
+        .project-item {
+            background-color: var(--light-gray);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .project-links {
+            margin-top: 10px;
+        }
+
+        .project-link {
+            display: inline-block;
+            margin-right: 15px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .project-link:hover {
+            text-decoration: underline;
+        }
+
+        .code-block {
+            background-color: #2d2d2d; /* 어두운 배경 */
+            color: #f8f8f2; /* 밝은 글자 색상 */
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+            font-family: 'Fira Code', 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        footer {
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .name-title {
+                padding: 20px 0 0 0;
+            }
+
+            .contact-info {
+                justify-content: center;
+            }
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0;
+        }
+
+        .project-item img {
+            max-width: 80%;
+            height: auto;
+            border-radius: 8px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="header-content">
+            <img src="/asset/IMG_0032.JPG" alt="프로필 사진" class="profile-img">
+            <div class="name-title">
+                <h1>신규리</h1>
+                <div class="title">Android Engineer</div>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <span>s.conast@gmail.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📱</span>
+                        <span>010-7111-0442</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📍</span>
+                        <span>Geumcheon-gu, Seoul</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📝</span>
+                        <a href="/blog/index.html" style="color: white; text-decoration: none;">블로그</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <h2>자기소개</h2>
+            <div class="section-content">
+                <p class="about-me">
+                    Android 개발자로서 Kotlin, Jetpack Compose, Coroutine, MVVM 아키텍처를 활용하여 안정적이고 효율적인 앱을 개발해왔습니다. Web3 지갑 및
+                    블록체인 서비스를 개발하며 Ethereum과 Bitcoin을 포함한 다양한 블록체인 네트워크를 연동하고, MPC(Multi-Party Computation) 기술을 활용하여 사용자
+                    지갑 보안성을 강화한 경험이 있습니다.
+                </p>
+                <ul class="sub-list">
+                    <li>Jetpack Compose를 도입하며 LazyColumn과 remember 등을 통해 불필요한 재컴포지션을 최소화하고, Coil을 이용한 이미지 최적화로 약 30% UI
+                        렌더링 성능 향상을 달성했습니다. JankStats를 활용하여 렌더링 지연 구간을 수치로 분석하고 개선했습니다.
+                    </li>
+                    <li>기존 AsyncTask 기반 비동기 로직을 Coroutine 및 viewModelScope로 전환하면서, try-catch 처리 및 Dispatcher 분리 등을 통해 앱
+                        안정성을 개선하고 Firebase 기준 크래시율을 약 20% 감소시켰습니다.
+                    </li>
+                    <li>GitHub Actions를 활용한 CI/CD 자동화 구축 경험을 통해 배포 효율성을 높이고 코드 품질을 유지해왔습니다.</li>
+                    <li>React Native 사이드 프로젝트를 통해 크로스플랫폼 앱 개발 경험을 보유하고 있습니다.</li>
+                    <li>기획자, 디자이너, 서버 개발자와의 긴밀한 협업을 통해 일정 준수 및 원활한 커뮤니케이션을 지향합니다.</li>
+                </ul>
+                <br>
+                <p><strong>주요 기술 스택:</strong> Kotlin, Jetpack Compose, MVVM, Coroutine, Room, Proto DataStore, Hilt,
+                    Retrofit, React Native, GitHub Actions, Web3, Ethereum, Bitcoin, MPC, CI/CD</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>경력사항</h2>
+            <div class="section-content">
+                <div class="experience-item">
+                    <div class="timeline-dot"></div>
+                    <div class="job-title">Ahnlab Blockchain Company</div>
+                    <div class="date">2023.01 - Present</div>
+                    <ul>
+                        <li>구글이 제시하는 권장 App Architecture 를 기반으로 UI, Domain, Data Layer 를 명확히 분리하여 UI와 데이터 레이어 간의 의존성을
+                            낮추고 유지보수성을 높임
+                        </li>
+                        <li>ViewModel에서 Coroutine 및 Flow를 활용하여 비동기 데이터 처리 및 상태 관리의 안정성을 개선하고 UI의 반응성을 높임</li>
+                        <li>데이터 흐름을 공식화하여 비즈니스 로직 테스트 커버리지를 높였으며, 코드 리뷰와 유닛테스트를 통한 코드 품질 확보에 기여</li>
+                        <li>기획자, 디자이너, 백엔드 개발자와 긴밀히 소통하며 일정 준수, iOS 개발자와 소통하며 비지니스 로직 설계</li>
+                        <li>Room 을 이용한 데이터 캐쉬 관리, Main Thread 작업 최소화 등을 활용한 성능 최적화 진행</li>
+                        <li>선연형 UI 프레임워크 Jetpack Compose 사용으로 유연하고 성능 최적화된 구조를 구현</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="timeline-dot"></div>
+                    <div class="job-title">Appknot</div>
+                    <div class="date">2018년 12월 - 2023년 1월</div>
+                    <ul>
+                        <li>안드로이드 개발팀을 위한 모듈 개발로 앱 개발 패턴과 유지보수에 용이함을 주도</li>
+                        <ul class="sub-list">
+                            <li>MVC → MVVM 패턴 유도</li>
+                            <li>RxJava, Flow 를 사용한 사내 규칙에 맞는 커스텀 Retrofit 응답구조 구현</li>
+                            <li>ExoPlayer 커스텀 동영상 플레이어 구현</li>
+                            <li>Radaee 라이브러리를 사용한 커스텀 PDF 뷰어 개발</li>
+                            <li>각종 유틸함수 및 Extentions</li>
+                        </ul>
+                        <li>개발팀 내 Git, SourceTree 사용법 교육 및 규칙 정립</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="timeline-dot"></div>
+                    <div class="job-title">이스터버니</div>
+                    <div class="date">2016년 12월 - 2017년 8월</div>
+                    <ul>
+                        <li>원더플 안드로이드 앱 개발</li>
+                    </ul>
+                </div>
+                <div class="experience-item">
+                    <div class="timeline-dot"></div>
+                    <div class="job-title">무빙키</div>
+                    <div class="date">2016년 6월 - 2016년 12월</div>
+                    <ul>
+                        <li>틸트코드 안드로이드 앱 개발</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>주요 프로젝트</h2>
+            <div class="section-content">
+                <div class="project-item">
+                    <div class="project-name">ABC Wallet</div>
+                    <div class="date">2024년 3월 - 현재</div>
+                    <ul class="sub-list">
+                        <li>MPC 기반의 Web3 Crypto Wallet</li>
+                        <li>Bitcoin, EVM(Ethereum, Polygon, Binance 등), Aptos 네트워크의 Native Coin, ERC20, NFT 서명 및 전송</li>
+                        <li>PlayStore 정기결제 시스템을 통한 Bitcoin 보안 강화</li>
+                        <li>Swap</li>
+                        <li>Staking</li>
+                    </ul>
+                    <br>
+                    <b>사용기술</b>
+                    <div class="project-tech">Kotlin, Jetpack Compose, Coroutine, Room, Proto DataStore, Hilt, OkHttp +
+                        Retrofit2, Kotlinx.Serialization, Github Action, Biometric Auth, KeyStore
+                    </div>
+                    <br>
+                    <b>App Architecture Layered</b>
+                    <pre class="code-block">
+                            <code>
+UI Layer
+│
+├── MainActivity (UI 진입점)
+│   ├── ABCApp (Compose 루트)
+│   │   └── ABCNavHost (네비게이션)
+│   │       ├── HomeScreen
+│   │       ├── AssetScreen
+│   │       └── 기타 Screens...
+│   │
+│   └── MainViewModel (UI 상태 관리)
+│       └── UseCase 호출
+│
+│
+Domain Layer
+│
+├── Use Cases
+│   ├── GetUserSettingsUseCase
+│   ├── AuthUseCase
+│   ├── PairWalletUseCase
+│   ├── BillingUseCase
+│   └── 기타 비즈니스 로직 UseCase들
+│
+│
+Data Layer
+│
+├── Repository (인터페이스로 추상화)
+│   ├── UserDataRepository
+│   ├── AuthRepository
+│   ├── NetworkRepository
+│   ├── BillingRepository
+│   └── WalletRepository 등
+│
+│
+└── Data Sources (Local & Remote)
+		├─ Remote Data Source
+		│  ├── Retrofit API 서비스 (서버 데이터)
+		│  ├── Firebase Cloud Messaging (FCM)
+		│  └── Google BillingClient (결제 서버)
+		│
+		└─ Local Data Source
+				├── NetworkDao (Room 데이터베이스)
+				├── ProtoDataStore (로컬 저장소)
+				└── Security 모듈 (ABCSecurity 등)
+                            </code>
+                        </pre>
+                    <br>
+                    <div class="project-links">
+                        <a href="https://play.google.com/store/apps/details?id=io.myabcwallet.mpc" class="project-link">앱
+                            스토어</a>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-name">JinModule</div>
+                    <div class="date">2019.08 - 2022.08 (운영 종료)</div>
+                    <ul class="sub-list">
+                        <li>사내 안드로이드 개발자들을 위해 만든 공용 모듈</li>
+                        <li>대부분 각자가 하나의 프로젝트를 진행하고 있기 때문에 코드 편차를 줄여 유지보수성을 높이고, 공용 모듈을 만들어 개발시간을 단축하기 위해 만든 모듈</li>
+                        <li>Retrofit 사용방법을 단순화하고, ExoPlayer 를 쉽게 사용 가능한 비디오모듈, 타이머기능을 구현한 모듈, Intent 나 Log 를 쉽게사용하기 위한
+                            각종 Extension 들이 있다.
+                        </li>
+                    </ul>
+                    <br>
+                    <div class="project-links">
+                        <a href="https://github.com/jin-sin/JinModule" class="project-link">Github</a>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-name">이코오롱 멤버십</div>
+                    <div class="date">2020.11 - 2021.03 (퇴사 전까지 유지보수)</div>
+                    <ul class="sub-list">
+                        <li>코오롱 회원을 위한 멤버십 앱</li>
+                        <li>커스텀 페이징</li>
+                        <li>위치서비스를 활용한 매장까지의 거리계산</li>
+                    </ul>
+                    <br>
+                    <b>사용기술</b>
+                    <div class="project-tech">Kotlin, Koin, DataBinding, LiveData, Coroutine, Room, Okhttp + Retrofit2,
+                        Moshi, SharedPreferences
+                    </div>
+                    <br>
+                    <b>주요화면</b>
+                    <br>
+                    <img src="asset/ekolonscreen.webp">
+                </div>
+
+                <div class="project-item">
+                    <div class="project-name">TRSquare</div>
+                    <div class="date">2018.12 - 2019.02 (퇴사 전까지 유지보수)</div>
+                    <ul class="sub-list">
+                        <li>아모레퍼시픽 면세 매장 모든 근무자들이 쓰는 사내 앱</li>
+                        <li>ExoPlayer 를 활용한 커스텀 동영상 플레이어</li>
+                        <li>mp3 파일 생성 및 restApi를 통한 요청 및 응답</li>
+                        <li>각종 커스텀 UI</li>
+                    </ul>
+                    <br>
+                    <b>주요화면</b>
+                    <br>
+                    <img src="asset/trsquarescreen.webp">
+                </div>
+
+                <div class="project-item">
+                    <div class="project-name">TiltCode</div>
+                    <div class="date">2016.06 - 2016.11</div>
+                    <ul class="sub-list">
+                        <li>틸트코드는 광고판의 위치정보 A와 결합되어 서버에 저장되고, 해당 위치 A에서 유저가 자신의 스마트폰을 광고판에 표시된 틸트코드와 비슷한 각도로 기울이기(틸팅)만
+                            하면, 서버는 광고주의 쿠폰과 같은 정보를 유저에게 전송한다.
+                        </li>
+                        <li>가속도 센서를 이용한 틸트값 계산, LocationManager 를 이용한 틸트코드와의 거리 계산</li>
+                    </ul>
+                    <br>
+                    <b>사용기술</b>
+                    <div class="project-tech">- Java, Retrofit, Picasso, Zxing, EventBus, GoogleMap</div>
+                    <br>
+                    <b>주요화면</b>
+                    <br>
+                    <img src="asset/tiltcodescreen.png">
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>그외 프로젝트</h2>
+            <div class="section-content">
+                <div class="project-item">
+                    <div class="project-name">그래피티 (iOS)</div>
+                    <div class="date">2019년 12월 - 2020년 02월</div>
+                    <ul class="sub-list">
+                        <li>낙서 기능 앱</li>
+                        <li>커스텀 동영상 플레이어</li>
+                        <li>동영상 커팅 기능</li>
+                        <li>위치 서비스</li>
+                    </ul>
+                    <br>
+                    <b>사용기술</b>
+                    <div class="project-tech">Swift</div>
+                    <br>
+                    <b>주요화면</b>
+                    <br>
+                    <img src="asset/graffityscreen.png">
+                </div>
+                <div class="project-item">
+                    <div class="project-name">DiscordBot Emilie</div>
+                    <div class="date">2022년 05월 - 2022년 05월</div>
+                    <ul class="sub-list">
+                        <li>Albion Online 게임 내 길드원들의 이번주 스코어를 랭크업 하기 위한 bot</li>
+                        <li>등록일 기준 일주일간의 경험치를 모아 DB에 삽입 및 수정</li>
+                    </ul>
+                    <br>
+                    <b>사용기술</b>
+                    <div class="project-tech">Python, Mysql, AWS</div>
+                    <br>
+                    <b>주요화면</b>
+                    <br>
+                    <img src="asset/emiliescreen.png">
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>학력</h2>
+            <div class="section-content">
+                <div class="education-item">
+                    <div class="timeline-dot"></div>
+                    <div class="degree">컴퓨터과학과 학사</div>
+                    <div class="school">서경대학교</div>
+                    <div class="date">2010.02 - 2016.06</div>
+                    <p>이공대 학생회 간무 역임</p>
+                    <p>어쿠스틱 밴드 동아리 회장</p>
+                    <p>사회봉사단 단원</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>자격증 및 수상</h2>
+            <div class="section-content">
+                <ul>
+                    <li>정보처리기능사 (2000.10)</li>
+                    <li>워드프로세서2급 (1999.11)</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>이 이력서는 2025년 4월에 마지막으로 업데이트되었습니다.</p>
+    </footer>
+</div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import {getAnalytics, logEvent} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    // Firebase 구성 (개인 프로젝트 정보로 교체 필요)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAUnCLCv_fyPBVY-r6H8g8F6Fu_FtbUjg4",
+        authDomain: "resume-ad60e.firebaseapp.com",
+        projectId: "resume-ad60e",
+        storageBucket: "resume-ad60e.firebasestorage.app",
+        messagingSenderId: "660508256837",
+        appId: "1:660508256837:web:ef39bb878aed3784bad12c",
+        measurementId: "G-2Z4Y19XH4X"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    // 방문 시간 측정
+    const startTime = Date.now();
+
+    window.addEventListener('beforeunload', () => {
+        const duration = Date.now() - startTime;
+        logEvent(analytics, 'visit_duration', {
+            'duration_ms': duration / 1000
+        });
+        // analytics.logEvent('visit_duration', {
+        //     duration_ms: duration
+        // });
+    });
+
+    // 방문 이벤트
+    logEvent(analytics, 'page_view');
+</script>
+</body>
+</html>
