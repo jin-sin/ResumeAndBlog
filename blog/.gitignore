@@ -1,0 +1,2 @@
+# Security-related files that should not be in version control
+js/auth-config.js

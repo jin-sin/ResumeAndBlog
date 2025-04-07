@@ -1,9 +1,12 @@
 // Admin functionality for blog management
 import { renderMarkdown } from './markdown.js';
 import { savePost, getAllPosts, getPost, deletePost } from './storage.js';
+import { verifyPassword, hasValidAccess, getAdminUrl } from './auth.js';
 
 // DOM elements
 const adminContent = document.getElementById('admin-content');
+const accessCheck = document.getElementById('access-check');
+const accessDenied = document.getElementById('access-denied');
 const loginSection = document.getElementById('login-section');
 const adminPanel = document.getElementById('admin-panel');
 const editorSection = document.getElementById('editor-section');
@@ -12,26 +15,45 @@ const loginError = document.getElementById('login-error');
 const logoutBtn = document.getElementById('logout-btn');
 const postListElement = document.getElementById('post-list');
 
-// Sample admin password - in a real app, this would be securely stored server-side
-// This is just for demonstration purposes
-const ADMIN_PASSWORD = 'admin123';
+// Auth token storage key
 const AUTH_TOKEN_KEY = 'blog_admin_auth';
 
-// Check if already logged in
-function checkAuth() {
-    const authToken = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (authToken === 'true') {
-        showAdminPanel();
+// Initialize admin page
+function init() {
+    // Show loading screen
+    accessCheck.classList.remove('hidden');
+    
+    // Check if URL has valid access key
+    if (hasValidAccess()) {
+        // Check if already logged in
+        const authToken = localStorage.getItem(AUTH_TOKEN_KEY);
+        if (authToken === 'true') {
+            showAdminPanel();
+        } else {
+            showLoginForm();
+        }
+    } else {
+        // Show access denied
+        showAccessDenied();
     }
 }
 
+// Show access denied message
+function showAccessDenied() {
+    accessCheck.classList.add('hidden');
+    loginSection.classList.add('hidden');
+    adminPanel.classList.add('hidden');
+    editorSection.classList.add('hidden');
+    accessDenied.classList.remove('hidden');
+}
+
 // Handle login form submission
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const password = document.getElementById('password').value;
     
-    if (password === ADMIN_PASSWORD) {
-        // Store auth token (in a real app, this would be a secure JWT or similar)
+    if (await verifyPassword(password)) {
+        // Store auth token
         localStorage.setItem(AUTH_TOKEN_KEY, 'true');
         showAdminPanel();
     } else {
@@ -47,6 +69,8 @@ logoutBtn.addEventListener('click', () => {
 
 // Show admin panel with post list
 async function showAdminPanel() {
+    accessCheck.classList.add('hidden');
+    accessDenied.classList.add('hidden');
     loginSection.classList.add('hidden');
     editorSection.classList.add('hidden');
     adminPanel.classList.remove('hidden');
@@ -57,6 +81,8 @@ async function showAdminPanel() {
 
 // Show login form
 function showLoginForm() {
+    accessCheck.classList.add('hidden');
+    accessDenied.classList.add('hidden');
     adminPanel.classList.add('hidden');
     editorSection.classList.add('hidden');
     loginSection.classList.remove('hidden');
@@ -113,13 +139,19 @@ async function loadPostList() {
 
 // Router handling
 function handleRoute() {
-    const hash = window.location.hash || '#/';
+    // First check if access is valid
+    if (!hasValidAccess()) {
+        showAccessDenied();
+        return;
+    }
     
-    // Check auth first
-    if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
+    // Then check if authenticated
+    if (localStorage.getItem(AUTH_TOKEN_KEY) !== 'true') {
         showLoginForm();
         return;
     }
+    
+    const hash = window.location.hash || '#/';
     
     if (hash === '#/') {
         showAdminPanel();
@@ -133,6 +165,8 @@ function handleRoute() {
 
 // Show post editor (new or edit)
 async function showEditor(postId = null) {
+    accessCheck.classList.add('hidden');
+    accessDenied.classList.add('hidden');
     adminPanel.classList.add('hidden');
     loginSection.classList.add('hidden');
     editorSection.classList.remove('hidden');
@@ -222,9 +256,16 @@ async function showEditor(postId = null) {
     });
 }
 
+// Generate and show admin URL
+function showAdminUrl() {
+    const url = getAdminUrl();
+    console.log('Admin URL:', url);
+    // You could display this URL in the UI or alert it if needed
+}
+
 // Initialize
 window.addEventListener('hashchange', handleRoute);
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
+    init();
     handleRoute();
 });

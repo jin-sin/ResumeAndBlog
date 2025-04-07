@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블로그 로그인 도우미</title>
+    <style>
+        :root {
+            --primary-color: #3DDC84;
+            --secondary-color: #083042;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result h2 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .admin-url {
+            word-break: break-all;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .instructions {
+            margin-top: 20px;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            color: #f44336;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>블로그 관리자 URL 생성기</h1>
+        
+        <div class="form-group">
+            <label for="password">관리자 비밀번호 설정</label>
+            <input type="password" id="password" placeholder="강력한 비밀번호를 입력하세요">
+        </div>
+        
+        <div class="form-group">
+            <label for="access-key">액세스 키 (자동 생성 또는 직접 입력)</label>
+            <input type="text" id="access-key" placeholder="랜덤 액세스 키">
+        </div>
+        
+        <button id="generate-btn">보안 URL 생성하기</button>
+        
+        <div id="result" class="result">
+            <h2>관리자 접근 URL</h2>
+            <div id="admin-url" class="admin-url"></div>
+            
+            <h2>설정 코드</h2>
+            <div id="config-code" class="admin-url"></div>
+            
+            <div class="instructions">
+                <h2>사용 방법</h2>
+                <ol>
+                    <li><strong>설정 코드</strong>를 복사하여 <code>auth-config.js</code> 파일에 붙여넣기하세요.</li>
+                    <li>보안 URL을 북마크에 저장하거나 안전한 곳에 기록해두세요.</li>
+                    <li>웹 브라우저의 시크릿 탭/개인 브라우저 모드가 아닌 일반 브라우저에서 사용하세요.</li>
+                </ol>
+                <p class="warning">주의: 이 페이지와 생성된 정보는 로컬에서만 처리되며, 서버로 전송되지 않습니다. 보안을 위해 이 페이지는 사용 후 닫으세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate a random string for access key
+        function generateRandomString(length = 20) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // SHA-256 hash function
+        async function sha256(message) {
+            // Encode as UTF-8
+            const msgBuffer = new TextEncoder().encode(message);
+            // Hash the message
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            // Convert to hex string
+            return Array.from(new Uint8Array(hashBuffer))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+        
+        // Generate the admin URL
+        function getAdminUrl(accessKey) {
+            const baseUrl = window.location.origin + '/blog/admin.html';
+            return `${baseUrl}?key=${accessKey}`;
+        }
+        
+        // Generate config code
+        async function generateConfigCode(password, accessKey) {
+            const passwordHash = await sha256(password);
+            
+            return `// Admin authentication configuration
+// This file should NOT be checked into version control
+
+// Generate a secure access key (you would replace this with your own secure key)
+export const ADMIN_CONFIG = {
+  // This is a SHA-256 hash of the admin password 
+  // (Do not include the actual password in this file)
+  passwordHash: '${passwordHash}',
+  
+  // Admin access key - a random string
+  accessKey: '${accessKey}'
+};`;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generate random access key on load
+            document.getElementById('access-key').value = generateRandomString();
+            
+            // Handle button click
+            document.getElementById('generate-btn').addEventListener('click', async () => {
+                const password = document.getElementById('password').value;
+                let accessKey = document.getElementById('access-key').value;
+                
+                if (!password) {
+                    alert('비밀번호를 입력해주세요.');
+                    return;
+                }
+                
+                if (!accessKey) {
+                    accessKey = generateRandomString();
+                    document.getElementById('access-key').value = accessKey;
+                }
+                
+                // Generate admin URL and config code
+                const adminUrl = getAdminUrl(accessKey);
+                const configCode = await generateConfigCode(password, accessKey);
+                
+                // Show results
+                document.getElementById('admin-url').textContent = adminUrl;
+                document.getElementById('config-code').textContent = configCode;
+                document.getElementById('result').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
