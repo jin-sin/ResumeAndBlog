@@ -1,10 +1,14 @@
 // Markdown processing
 export function renderMarkdown(text) {
+    // Fix: Ensure newlines are respected by explicitly converting them to <br> tags
+    // This handles the common case where entered newlines should create visual breaks
+    text = text.replace(/(?<!\n)\n(?!\n)/g, '  \n');
+    
     // Using the marked library
     if (typeof marked !== 'undefined') {
-        // Configure marked options if needed
+        // Configure marked options
         marked.setOptions({
-            breaks: true,       // Add line breaks
+            breaks: true,       // Convert line breaks marked with two spaces to <br>
             gfm: true,          // GitHub Flavored Markdown
             headerIds: true,    // Add IDs to headers
             sanitize: false     // Allow HTML
@@ -42,7 +46,10 @@ function convertMarkdownFallback(text) {
     // Handle images
     text = text.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
     
-    // Handle paragraphs (basic)
+    // Handle line breaks with two spaces at end of line OR <br> tags
+    text = text.replace(/  \n/g, '<br>\n');
+    
+    // Handle paragraphs (double newlines)
     text = text.replace(/\n\n/g, '</p><p>');
     text = '<p>' + text + '</p>';
     
