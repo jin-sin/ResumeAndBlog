@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>마크다운 테이블 테스트</h1>
+        
+        <textarea id="markdown-input">
+# 테이블 테스트
+
+아래는 마크다운 테이블 예시입니다:
+
+| 이름 | 직업 | 위치 |
+|------|------|------|
+| 홍길동 | 개발자 | 서울 |
+| 김철수 | 디자이너 | 부산 |
+| 이영희 | PM | 대전 |
+
+## 정렬 테스트
+
+| 왼쪽 정렬 | 가운데 정렬 | 오른쪽 정렬 |
+|:---------|:----------:|-----------:|
+| 텍스트 | 텍스트 | 텍스트 |
+| 내용 | 내용 | 내용 |
+        </textarea>
+        
+        <button id="render-btn">렌더링</button>
+        
+        <div id="markdown-output" class="output"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const renderBtn = document.getElementById('render-btn');
+            const markdownInput = document.getElementById('markdown-input');
+            const markdownOutput = document.getElementById('markdown-output');
+            
+            // Configure marked for basic rendering
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    headerIds: true,
+                    sanitize: false
+                });
+            }
+            
+            renderBtn.addEventListener('click', function() {
+                const markdown = markdownInput.value;
+                
+                // Try with marked library
+                try {
+                    const html = marked.parse(markdown);
+                    markdownOutput.innerHTML = html;
+                    console.log('Rendered with marked.js');
+                } catch(e) {
+                    console.error('Error using marked.js:', e);
+                    // Fallback to manual rendering
+                    markdownOutput.innerHTML = manualRenderMarkdown(markdown);
+                    console.log('Rendered with manual fallback');
+                }
+            });
+            
+            // Manual markdown renderer with table support
+            function manualRenderMarkdown(text) {
+                // Handle tables (must happen before other formatting)
+                text = handleTables(text);
+                
+                // Handle headers
+                text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+                text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+                text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+                
+                // Handle paragraphs
+                text = text.replace(/\n\n/g, '</p><p>');
+                text = '<p>' + text + '</p>';
+                
+                return text;
+            }
+            
+            // Table handling function
+            function handleTables(text) {
+                let lines = text.split('\n');
+                let inTable = false;
+                let tableHtml = '';
+                let tableRows = [];
+                let alignments = [];
+                
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    
+                    // Check if this is a table row
+                    if (line.startsWith('|') && line.endsWith('|')) {
+                        // If this is the first row, start a new table
+                        if (!inTable) {
+                            inTable = true;
+                            tableHtml = '<table>';
+                            tableRows = [];
+                        }
+                        
+                        // Check if this is the alignment row
+                        if (line.includes('---')) {
+                            alignments = line.split('|').map(cell => {
+                                cell = cell.trim();
+                                if (cell.startsWith(':') && cell.endsWith(':')) {
+                                    return 'center';
+                                } else if (cell.endsWith(':')) {
+                                    return 'right';
+                                } else {
+                                    return 'left';
+                                }
+                            });
+                            // Skip the alignment row in output
+                            continue;
+                        }
+                        
+                        // Process table row
+                        let cells = line.split('|').map(cell => cell.trim()).filter(cell => cell !== '');
+                        tableRows.push(cells);
+                    } else if (inTable) {
+                        // End of table
+                        inTable = false;
+                        
+                        // Add rows to table
+                        if (tableRows.length > 0) {
+                            // First row is header
+                            tableHtml += '<thead><tr>';
+                            for (let j = 0; j < tableRows[0].length; j++) {
+                                let align = alignments[j+1] || 'left';
+                                tableHtml += `<th style="text-align:${align}">${tableRows[0][j]}</th>`;
+                            }
+                            tableHtml += '</tr></thead><tbody>';
+                            
+                            // Add data rows
+                            for (let j = 1; j < tableRows.length; j++) {
+                                tableHtml += '<tr>';
+                                for (let k = 0; k < tableRows[j].length; k++) {
+                                    let align = alignments[k+1] || 'left';
+                                    tableHtml += `<td style="text-align:${align}">${tableRows[j][k]}</td>`;
+                                }
+                                tableHtml += '</tr>';
+                            }
+                            
+                            tableHtml += '</tbody></table>';
+                            
+                            // Replace table in the text
+                            let tableText = '';
+                            for (let j = 0; j < tableRows.length + 1; j++) { // +1 for alignment row
+                                if (j < i - tableRows.length) {
+                                    tableText += lines[j] + '\n';
+                                }
+                            }
+                            lines[i - tableRows.length - 1] = tableHtml;
+                            tableRows = [];
+                        }
+                    }
+                }
+                
+                // If still in a table at the end of the text
+                if (inTable && tableRows.length > 0) {
+                    // First row is header
+                    tableHtml += '<thead><tr>';
+                    for (let j = 0; j < tableRows[0].length; j++) {
+                        let align = alignments[j+1] || 'left';
+                        tableHtml += `<th style="text-align:${align}">${tableRows[0][j]}</th>`;
+                    }
+                    tableHtml += '</tr></thead><tbody>';
+                    
+                    // Add data rows
+                    for (let j = 1; j < tableRows.length; j++) {
+                        tableHtml += '<tr>';
+                        for (let k = 0; k < tableRows[j].length; k++) {
+                            let align = alignments[k+1] || 'left';
+                            tableHtml += `<td style="text-align:${align}">${tableRows[j][k]}</td>`;
+                        }
+                        tableHtml += '</tr>';
+                    }
+                    
+                    tableHtml += '</tbody></table>';
+                    lines[lines.length - tableRows.length - 1] = tableHtml;
+                }
+                
+                return lines.join('\n');
+            }
+            
+            // Initial render
+            renderBtn.click();
+        });
+    </script>
+</body>
+</html>
