@@ -28,10 +28,11 @@
         }
 
         header {
-            background-color: var(--secondary-color);
-            color: white;
+            background-color: white;
+            color: var(--secondary-color);
             padding: 20px 0;
             text-align: center;
+            border-bottom: 1px solid #eee;
         }
 
         nav {
@@ -46,10 +47,17 @@
             margin: 0 15px;
             text-decoration: none;
             font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
         }
 
         nav a:hover {
-            color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        nav a.active {
+            background-color: var(--primary-color);
         }
 
         .container {
@@ -115,22 +123,25 @@
             background-color: white;
             border-radius: 8px;
             box-shadow: var(--box-shadow);
-            padding: 30px;
+            padding: 40px;
             margin-bottom: 30px;
+            max-width: 850px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .post-header {
-            margin-bottom: 20px;
+            margin-bottom: 35px;
         }
 
         .post-title {
             color: var(--secondary-color);
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-size: 2.2em;
+            margin-bottom: 8px;
         }
 
         .post-date {
-            color: #777;
+            color: #888;
             font-size: 0.9em;
         }
 
@@ -174,7 +185,7 @@
             border-radius: 5px;
             text-decoration: none;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .new-post-btn {

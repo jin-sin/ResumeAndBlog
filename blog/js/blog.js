@@ -72,20 +72,35 @@ async function showPost(postId) {
         return;
     }
     
+    // Create back button container and button
+    const backContainer = document.createElement('div');
+    backContainer.style = 'max-width: 850px; margin: 0 auto;';
+    
     const backButton = document.createElement('a');
     backButton.href = '#/';
     backButton.className = 'back-button';
     backButton.textContent = '← 목록으로';
-    mainContent.appendChild(backButton);
+    
+    backContainer.appendChild(backButton);
+    mainContent.appendChild(backContainer);
     
     const postElement = document.createElement('article');
     postElement.className = 'blog-post';
     
     const headerElement = document.createElement('header');
     headerElement.className = 'post-header';
+    
+    // Format date with options
+    const dateOptions = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric'
+    };
+    const formattedDate = new Date(post.date).toLocaleDateString('ko-KR', dateOptions);
+    
     headerElement.innerHTML = `
         <h1 class="post-title">${post.title}</h1>
-        <div class="post-date">${new Date(post.date).toLocaleDateString()}</div>
+        <div class="post-date">${formattedDate}</div>
     `;
     
     const contentElement = document.createElement('div');
@@ -97,6 +112,27 @@ async function showPost(postId) {
     mainContent.appendChild(postElement);
 }
 
+// Update active navigation
+function updateActiveNav() {
+    // Find all nav links
+    const navLinks = document.querySelectorAll('nav a');
+    
+    // Remove active class from all links
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    // Add active class to current page link
+    navLinks.forEach(link => {
+        if (link.href.includes('/blog/index.html')) {
+            link.classList.add('active');
+        }
+    });
+}
+
 // Initialize
 window.addEventListener('hashchange', handleRoute);
-document.addEventListener('DOMContentLoaded', handleRoute);
+document.addEventListener('DOMContentLoaded', () => {
+    handleRoute();
+    updateActiveNav();
+});
