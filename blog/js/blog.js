@@ -1,6 +1,6 @@
 // Main blog functionality
 import { renderMarkdown } from './markdown.js';
-import { savePost, getAllPosts, getPost } from './storage.js';
+import { getAllPosts, getPost } from './storage.js';
 
 // DOM elements
 const mainContent = document.getElementById('main-content');
@@ -15,23 +15,17 @@ function handleRoute() {
     
     if (hash === '#/') {
         showBlogList();
-    } else if (hash === '#/new') {
-        showEditor();
     } else if (hash.startsWith('#/post/')) {
         const postId = hash.replace('#/post/', '');
         showPost(postId);
+    } else {
+        // Redirect to home for any other route
+        window.location.hash = '#/';
     }
 }
 
 // Show list of blog posts
 async function showBlogList() {
-    // Add new post button
-    const newPostBtn = document.createElement('a');
-    newPostBtn.href = '#/new';
-    newPostBtn.className = 'new-post-btn';
-    newPostBtn.textContent = '새 글 작성';
-    mainContent.appendChild(newPostBtn);
-    
     // Create blog list container
     const blogListElement = document.createElement('div');
     blogListElement.className = 'blog-list';
@@ -101,82 +95,6 @@ async function showPost(postId) {
     postElement.appendChild(headerElement);
     postElement.appendChild(contentElement);
     mainContent.appendChild(postElement);
-}
-
-// Show post editor
-function showEditor() {
-    const backButton = document.createElement('a');
-    backButton.href = '#/';
-    backButton.className = 'back-button';
-    backButton.textContent = '← 취소';
-    mainContent.appendChild(backButton);
-    
-    const editorContainer = document.createElement('div');
-    editorContainer.className = 'editor-container';
-    
-    const form = document.createElement('form');
-    form.className = 'editor-form';
-    form.innerHTML = `
-        <label for="post-title">제목</label>
-        <input type="text" id="post-title" name="title" required>
-        
-        <label for="post-content">내용 (마크다운 형식)</label>
-        <textarea id="post-content" name="content" required></textarea>
-        
-        <div id="preview-container" class="preview-container" style="display: none;"></div>
-        
-        <div class="buttons-container">
-            <button type="submit" class="submit-btn">저장</button>
-            <button type="button" class="preview-btn" id="preview-btn">미리보기</button>
-        </div>
-    `;
-    
-    editorContainer.appendChild(form);
-    mainContent.appendChild(editorContainer);
-    
-    // Preview functionality
-    const previewBtn = document.getElementById('preview-btn');
-    const previewContainer = document.getElementById('preview-container');
-    const contentTextarea = document.getElementById('post-content');
-    
-    previewBtn.addEventListener('click', () => {
-        const content = contentTextarea.value;
-        if (content.trim() === '') {
-            previewContainer.innerHTML = '<p>내용을 입력하세요.</p>';
-        } else {
-            previewContainer.innerHTML = renderMarkdown(content);
-        }
-        
-        previewContainer.style.display = previewContainer.style.display === 'none' ? 'block' : 'none';
-        previewBtn.textContent = previewContainer.style.display === 'none' ? '미리보기' : '미리보기 닫기';
-    });
-    
-    // Form submission
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const title = document.getElementById('post-title').value;
-        const content = document.getElementById('post-content').value;
-        
-        if (!title.trim() || !content.trim()) {
-            alert('제목과 내용을 모두 입력해주세요.');
-            return;
-        }
-        
-        // Create new post object
-        const post = {
-            id: Date.now().toString(),
-            title: title,
-            content: content,
-            date: new Date().toISOString()
-        };
-        
-        // Save the post
-        await savePost(post);
-        
-        // Redirect to post view
-        window.location.hash = `#/post/${post.id}`;
-    });
 }
 
 // Initialize

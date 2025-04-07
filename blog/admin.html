@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>신규리의 블로그</title>
+    <title>블로그 관리자</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.css">
     <style>
         :root {
@@ -58,122 +58,46 @@
             padding: 0 20px;
         }
 
-        .blog-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .blog-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: var(--box-shadow);
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .blog-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .blog-card-content {
-            padding: 20px;
-        }
-
-        .blog-title {
-            color: var(--secondary-color);
-            margin-bottom: 10px;
-            font-size: 1.4em;
-        }
-
-        .blog-date {
-            color: #777;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-        }
-
-        .blog-excerpt {
-            margin-bottom: 15px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-        }
-
-        .read-more {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        .blog-post {
+        .login-container {
             background-color: white;
             border-radius: 8px;
             box-shadow: var(--box-shadow);
             padding: 30px;
-            margin-bottom: 30px;
+            max-width: 500px;
+            margin: 50px auto;
         }
 
-        .post-header {
+        .login-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .login-form input[type="password"] {
+            width: 100%;
+            padding: 10px;
             margin-bottom: 20px;
-        }
-
-        .post-title {
-            color: var(--secondary-color);
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .post-date {
-            color: #777;
-            font-size: 0.9em;
-        }
-
-        .post-content {
-            line-height: 1.8;
-        }
-
-        .post-content h1, .post-content h2 {
-            color: var(--secondary-color);
-            margin: 1em 0 0.5em;
-        }
-
-        .post-content p {
-            margin-bottom: 1em;
-        }
-
-        .post-content img {
-            max-width: 100%;
-            height: auto;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            margin: 1em 0;
+            font-size: 1em;
         }
 
-        .post-content pre {
-            background-color: #f4f4f4;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin: 1em 0;
-        }
-
-        .post-content code {
-            font-family: 'Fira Code', Consolas, monospace;
-        }
-
-        .back-button {
-            display: inline-block;
+        .login-btn {
             background-color: var(--primary-color);
             color: white;
-            padding: 8px 15px;
+            border: none;
+            padding: 10px 20px;
             border-radius: 5px;
-            text-decoration: none;
             font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
         }
 
@@ -185,7 +109,80 @@
             border-radius: 5px;
             text-decoration: none;
             font-weight: bold;
-            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background-color: #777;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .post-list {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+        }
+
+        .post-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-info {
+            flex-grow: 1;
+        }
+
+        .post-title {
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+
+        .post-date {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn, .delete-btn, .view-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .edit-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .view-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            cursor: pointer;
+            border: none;
         }
 
         .editor-container {
@@ -237,18 +234,29 @@
             gap: 10px;
         }
 
-        .submit-btn, .preview-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
+        .submit-btn, .preview-btn, .back-btn {
             padding: 10px 20px;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
         }
 
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
         .preview-btn {
             background-color: var(--secondary-color);
+            color: white;
+            border: none;
+        }
+
+        .back-btn {
+            background-color: #777;
+            color: white;
+            border: none;
         }
 
         footer {
@@ -259,27 +267,49 @@
             margin-top: 50px;
         }
 
-        @media (max-width: 768px) {
-            .blog-list {
-                grid-template-columns: 1fr;
-            }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>신규리의 블로그</h1>
+        <h1>블로그 관리자</h1>
     </header>
     
     <nav>
         <a href="/resume.html">이력서</a>
         <a href="/blog/index.html">블로그</a>
+        <a href="/blog/admin.html">관리자</a>
     </nav>
 
-    <div class="container" id="main-content">
-        <!-- Content will be loaded here by JavaScript -->
-        <div class="blog-list" id="blog-list">
-            <!-- Blog posts will be loaded here by JavaScript -->
+    <div class="container" id="admin-content">
+        <!-- Login form (shown initially) -->
+        <div id="login-section" class="login-container">
+            <h2 style="margin-bottom: 20px;">관리자 로그인</h2>
+            <form id="login-form" class="login-form">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" required>
+                <button type="submit" class="login-btn">로그인</button>
+            </form>
+            <p id="login-error" style="color: red; margin-top: 10px; display: none;">비밀번호가 틀렸습니다.</p>
+        </div>
+        
+        <!-- Admin panel (hidden initially) -->
+        <div id="admin-panel" class="hidden">
+            <div class="admin-controls">
+                <a href="#/new" class="new-post-btn">새 글 작성</a>
+                <button id="logout-btn" class="logout-btn">로그아웃</button>
+            </div>
+            
+            <div id="post-list" class="post-list">
+                <!-- Post list will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Editor section (hidden initially) -->
+        <div id="editor-section" class="hidden">
+            <!-- Editor will be loaded here -->
         </div>
     </div>
 
@@ -289,6 +319,8 @@
 
     <!-- Load scripts -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/blog.js" type="module"></script>
+    <script src="js/markdown.js" type="module"></script>
+    <script src="js/storage.js" type="module"></script>
+    <script src="js/admin.js" type="module"></script>
 </body>
 </html>
