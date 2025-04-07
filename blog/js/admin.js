@@ -2,6 +2,7 @@
 import { renderMarkdown } from './markdown.js';
 import { savePost, getAllPosts, getPost, deletePost } from './storage.js';
 import { verifyPassword, hasValidAccess, getAdminUrl } from './auth.js';
+import { updateSitemap } from './sitemap.js';
 
 // DOM elements
 const adminContent = document.getElementById('admin-content');
@@ -131,6 +132,15 @@ async function loadPostList() {
             if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
                 const postId = e.target.getAttribute('data-id');
                 await deletePost(postId);
+                
+                // Update sitemap after deleting post
+                try {
+                    await updateSitemap();
+                    console.log('Sitemap updated after post deletion');
+                } catch (error) {
+                    console.error('Error updating sitemap:', error);
+                }
+                
                 await loadPostList();
             }
         });
@@ -295,6 +305,15 @@ async function showEditor(postId = null) {
                 } catch (localStorageError) {
                     throw new Error(`Failed localStorage fallback: ${localStorageError.message}`);
                 }
+            }
+            
+            // Update sitemap after saving post
+            try {
+                await updateSitemap();
+                console.log('Sitemap updated after post save');
+            } catch (sitemapError) {
+                console.error('Error updating sitemap:', sitemapError);
+                // Non-critical error, continue with success flow
             }
             
             // Show success message and redirect

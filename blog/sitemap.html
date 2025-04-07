@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sitemap Generator</title>
+    <style>
+        :root {
+            --primary-color: #3DDC84;
+            --secondary-color: #083042;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Noto Sans KR', sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+        
+        p {
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .warning-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #2cba6a;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 20px;
+            resize: vertical;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>사이트맵 생성기</h1>
+        
+        <div class="info-box">
+            <p><strong>사이트맵이란?</strong> 검색 엔진이 웹사이트의 구조를 이해하고 효과적으로 크롤링할 수 있도록 도와주는 XML 파일입니다.</p>
+        </div>
+        
+        <div class="warning-box">
+            <p><strong>주의:</strong> 사이트맵을 생성한 후에는 <code>sitemap.xml</code> 파일을 웹사이트 루트 디렉토리에 업로드해야 합니다.</p>
+        </div>
+        
+        <div class="actions">
+            <button id="generate-btn">사이트맵 생성하기</button>
+            <button id="download-btn">사이트맵 다운로드</button>
+            <button id="view-btn">현재 사이트맵 보기</button>
+        </div>
+        
+        <div id="status" class="status" style="display:none;"></div>
+        
+        <textarea id="sitemap-content" placeholder="사이트맵 내용이 여기에 표시됩니다..." style="display:none;"></textarea>
+        
+        <footer>
+            <p>마지막 업데이트: <span id="last-updated">생성된 적 없음</span></p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { updateSitemap, downloadSitemap, getSitemapContent } from './js/sitemap.js';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const viewBtn = document.getElementById('view-btn');
+            const sitemapContent = document.getElementById('sitemap-content');
+            const statusEl = document.getElementById('status');
+            const lastUpdatedEl = document.getElementById('last-updated');
+            
+            // Check last updated timestamp
+            const lastUpdated = localStorage.getItem('sitemap_updated');
+            if (lastUpdated) {
+                lastUpdatedEl.textContent = new Date(lastUpdated).toLocaleString();
+            }
+            
+            // Generate sitemap
+            generateBtn.addEventListener('click', async function() {
+                statusEl.style.display = 'block';
+                statusEl.className = 'status';
+                statusEl.textContent = '사이트맵 생성 중...';
+                
+                try {
+                    const success = await updateSitemap();
+                    if (success) {
+                        statusEl.className = 'status success';
+                        statusEl.textContent = '사이트맵이 성공적으로 생성되었습니다.';
+                        lastUpdatedEl.textContent = new Date().toLocaleString();
+                    } else {
+                        statusEl.className = 'status error';
+                        statusEl.textContent = '사이트맵 생성 중 오류가 발생했습니다.';
+                    }
+                } catch (error) {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `오류: ${error.message}`;
+                }
+            });
+            
+            // Download sitemap
+            downloadBtn.addEventListener('click', async function() {
+                try {
+                    await downloadSitemap();
+                } catch (error) {
+                    statusEl.style.display = 'block';
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `다운로드 오류: ${error.message}`;
+                }
+            });
+            
+            // View current sitemap
+            viewBtn.addEventListener('click', function() {
+                const content = getSitemapContent();
+                sitemapContent.value = content;
+                sitemapContent.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
