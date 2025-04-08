@@ -34,17 +34,29 @@ export async function getAllPosts() {
     const postsJson = localStorage.getItem(STORAGE_KEY);
     
     if (!postsJson) {
-        // Create sample post if no posts exist
-        if (localStorage.getItem('first_visit') !== 'false') {
+        // Create sample post if no posts exist and this is the admin page
+        if (localStorage.getItem('first_visit') !== 'false' && window.location.href.includes('/admin.html')) {
             const samplePost = createSamplePost();
-            await savePost(samplePost);
-            localStorage.setItem('first_visit', 'false');
-            return [samplePost];
+            
+            // Manually save to localStorage instead of using savePost to avoid alert
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify([samplePost]));
+                localStorage.setItem('first_visit', 'false');
+                console.log('Created sample post for first visit');
+                return [samplePost];
+            } catch (error) {
+                console.error('Failed to create sample post:', error);
+            }
         }
         return [];
     }
     
-    return JSON.parse(postsJson);
+    try {
+        return JSON.parse(postsJson);
+    } catch (error) {
+        console.error('Error parsing posts from localStorage:', error);
+        return [];
+    }
 }
 
 // Get a single post by ID

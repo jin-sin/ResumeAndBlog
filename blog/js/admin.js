@@ -1,8 +1,11 @@
 // Admin functionality for blog management
 import { renderMarkdown } from './markdown.js';
-import { savePost, getAllPosts, getPost, deletePost } from './storage.js';
+// Import for localStorage - comment out when using the database
+// import { savePost, getAllPosts, getPost, deletePost } from './storage.js';
 import { verifyPassword, hasValidAccess, getAdminUrl } from './auth.js';
 import { updateSitemapXML } from './sitemap-updater.js';
+// MariaDB API client for database operations
+import { fetchAllPosts, fetchPost, createPost, updatePost, deletePost as apiDeletePost, fetchSitemap } from './api.js';
 
 // DOM elements
 const adminContent = document.getElementById('admin-content');
@@ -93,58 +96,76 @@ function showLoginForm() {
 
 // Load all posts for the admin panel
 async function loadPostList() {
-    const posts = await getAllPosts();
-    
-    if (posts.length === 0) {
-        postListElement.innerHTML = '<p style="padding: 20px; text-align: center;">아직 작성된 글이 없습니다.</p>';
-        return;
-    }
-    
-    // Sort posts by date (newest first)
-    posts.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    // Clear post list
-    postListElement.innerHTML = '';
-    
-    // Add each post to the list
-    posts.forEach(post => {
-        const postItem = document.createElement('div');
-        postItem.className = 'post-item';
+    try {
+        // Fetch posts from database
+        const posts = await fetchAllPosts();
         
-        postItem.innerHTML = `
-            <div class="post-info">
-                <div class="post-title">${post.title}</div>
-                <div class="post-date">${new Date(post.date).toLocaleDateString()}</div>
-            </div>
-            <div class="post-actions">
-                <a href="/blog/index.html#/post/${post.id}" class="view-btn" target="_blank">보기</a>
-                <a href="#/edit/${post.id}" class="edit-btn">수정</a>
-                <button class="delete-btn" data-id="${post.id}">삭제</button>
-            </div>
-        `;
+        if (!posts || posts.length === 0) {
+            postListElement.innerHTML = '<p style="padding: 20px; text-align: center;">아직 작성된 글이 없습니다.</p>';
+            return;
+        }
         
-        postListElement.appendChild(postItem);
-    });
-    
-    // Add event listeners for delete buttons
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
-                const postId = e.target.getAttribute('data-id');
-                await deletePost(postId);
-                
-                // Update sitemap.xml after deleting post
-                try {
-                    await updateSitemapXML();
-                    console.log('sitemap.xml updated after post deletion');
-                } catch (error) {
-                    console.error('Error updating sitemap.xml:', error);
-                }
-                
-                await loadPostList();
-            }
+        // Sort posts by date (newest first)
+        posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Clear post list
+        postListElement.innerHTML = '';
+        
+        // Add each post to the list
+        posts.forEach(post => {
+            const postItem = document.createElement('div');
+            postItem.className = 'post-item';
+            
+            postItem.innerHTML = `
+                <div class="post-info">
+                    <div class="post-title">${post.title}</div>
+                    <div class="post-date">${new Date(post.date).toLocaleDateString()}</div>
+                </div>
+                <div class="post-actions">
+                    <a href="/blog/index.html#/post/${post.id}" class="view-btn" target="_blank">보기</a>
+                    <a href="#/edit/${post.id}" class="edit-btn">수정</a>
+                    <button class="delete-btn" data-id="${post.id}">삭제</button>
+                </div>
+            `;
+            
+            postListElement.appendChild(postItem);
         });
-    });
+        
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
+                    const postId = e.target.getAttribute('data-id');
+                    
+                    try {
+                        // Delete from database
+                        await apiDeletePost(postId);
+                        
+                        // Update sitemap after deleting post
+                        try {
+                            // Try to get sitemap directly from the API
+                            const sitemap = await fetchSitemap();
+                            console.log('Fetched updated sitemap from API');
+                            
+                            // If you still need to download the sitemap
+                            await updateSitemapXML();
+                        } catch (sitemapError) {
+                            console.error('Error updating sitemap:', sitemapError);
+                        }
+                        
+                        // Refresh the post list
+                        await loadPostList();
+                    } catch (error) {
+                        console.error(`Error deleting post ${postId}:`, error);
+                        alert('게시물 삭제 중 오류가 발생했습니다.');
+                    }
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Error loading posts:', error);
+        postListElement.innerHTML = '<p style="padding: 20px; text-align: center; color: red;">게시물을 불러오는 중 오류가 발생했습니다.</p>';
+    }
 }
 
 // Router handling
@@ -207,10 +228,15 @@ async function showEditor(postId = null) {
     
     // Load post data if editing
     if (postId) {
-        const post = await getPost(postId);
-        if (post) {
-            document.getElementById('post-title').value = post.title;
-            document.getElementById('post-content').value = post.content;
+        try {
+            const post = await fetchPost(postId);
+            if (post) {
+                document.getElementById('post-title').value = post.title;
+                document.getElementById('post-content').value = post.content;
+            }
+        } catch (error) {
+            console.error(`Error loading post ${postId}:`, error);
+            alert('게시물을 불러오는 중 오류가 발생했습니다.');
         }
     }
     
@@ -237,7 +263,7 @@ async function showEditor(postId = null) {
         previewBtn.textContent = previewContainer.style.display === 'none' ? '미리보기' : '미리보기 닫기';
     });
     
-    // Form submission - direct DOM handling
+    // Form submission handling
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.addEventListener('click', handlePostSubmit);
     
@@ -254,66 +280,47 @@ async function showEditor(postId = null) {
         }
         
         try {
+            // Disable the submit button to prevent double submission
             submitBtn.disabled = true;
             submitBtn.textContent = '저장 중...';
             
-            const newDate = new Date().toISOString();
-            let oldDate = newDate;
-            
-            if (postId) {
-                const existingPost = await getPost(postId);
-                oldDate = existingPost ? existingPost.date : newDate;
-            }
+            // Current time for new posts
+            const now = new Date().toISOString();
             
             // Create post object
             const post = {
                 id: postId || Date.now().toString(),
                 title: title,
                 content: content,
-                date: oldDate
+                date: now
             };
             
-            console.log('Saving post:', post);
+            console.log('Saving post to database:', post);
             
-            // Direct localStorage operation as a fallback
-            try {
-                // First try the normal savePost function
-                await savePost(post);
-            } catch (saveError) {
-                console.error('Error using savePost function:', saveError);
-                
-                // Fallback to direct localStorage
-                const STORAGE_KEY = 'blog_posts';
-                let posts = [];
-                
-                try {
-                    const existingPostsJson = localStorage.getItem(STORAGE_KEY);
-                    if (existingPostsJson) {
-                        posts = JSON.parse(existingPostsJson);
-                    }
-                    
-                    // Find and update existing post or add new one
-                    const existingIndex = posts.findIndex(p => p.id === post.id);
-                    if (existingIndex >= 0) {
-                        posts[existingIndex] = post;
-                    } else {
-                        posts.push(post);
-                    }
-                    
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-                    console.log('Post saved using direct localStorage operation');
-                } catch (localStorageError) {
-                    throw new Error(`Failed localStorage fallback: ${localStorageError.message}`);
-                }
+            // Save to the database
+            if (postId) {
+                // Update existing post
+                await updatePost(postId, {
+                    title: title,
+                    content: content
+                });
+                console.log(`Post ${postId} updated successfully`);
+            } else {
+                // Create new post
+                const result = await createPost(post);
+                console.log('New post created:', result);
             }
             
-            // Update sitemap.xml after saving post
+            // Update sitemap after saving
             try {
+                // Try to get sitemap directly from the API
+                const sitemap = await fetchSitemap();
+                console.log('Fetched updated sitemap from API');
+                
+                // If you still need a downloadable version
                 await updateSitemapXML();
-                console.log('sitemap.xml updated after post save');
             } catch (sitemapError) {
-                console.error('Error updating sitemap.xml:', sitemapError);
-                // Non-critical error, continue with success flow
+                console.error('Error updating sitemap:', sitemapError);
             }
             
             // Show success message and redirect
@@ -323,6 +330,8 @@ async function showEditor(postId = null) {
         } catch (error) {
             console.error('Error saving post:', error);
             alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+        } finally {
+            // Re-enable the submit button
             submitBtn.disabled = false;
             submitBtn.textContent = '저장';
         }
