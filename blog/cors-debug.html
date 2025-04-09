@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        input {
+            padding: 8px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>CORS Debug Tool</h1>
+    
+    <div class="card">
+        <h2>API Configuration</h2>
+        <div>
+            <label for="apiUrl">API URL:</label>
+            <input type="text" id="apiUrl" value="http://orange-man.xyz:5501/api/posts" />
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Test OPTIONS Request (CORS Preflight)</h2>
+        <button id="testOptions">Test OPTIONS Request</button>
+        <div id="optionsResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Test GET Request</h2>
+        <button id="testGet">Test GET Request</button>
+        <div id="getResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Headers Analysis</h2>
+        <div id="headerAnalysis"></div>
+    </div>
+
+    <script>
+        // Helper to display results
+        function displayResult(elementId, success, message, data) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '';
+            
+            const statusClass = success ? 'success' : 'error';
+            const statusDiv = document.createElement('div');
+            statusDiv.className = statusClass;
+            statusDiv.textContent = message;
+            element.appendChild(statusDiv);
+            
+            if (data) {
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(data, null, 2);
+                element.appendChild(pre);
+            }
+        }
+
+        // Test OPTIONS request
+        document.getElementById('testOptions').addEventListener('click', async () => {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'OPTIONS',
+                    mode: 'cors'
+                });
+                
+                const headers = {};
+                for (const [key, value] of response.headers.entries()) {
+                    headers[key] = value;
+                }
+                
+                displayResult('optionsResult', true, 'OPTIONS request successful!', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: headers
+                });
+                
+                // Analyze CORS headers
+                analyzeHeaders(headers);
+                
+            } catch (error) {
+                displayResult('optionsResult', false, 'OPTIONS request failed!', {
+                    error: error.message
+                });
+            }
+        });
+
+        // Test GET request
+        document.getElementById('testGet').addEventListener('click', async () => {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const headers = {};
+                for (const [key, value] of response.headers.entries()) {
+                    headers[key] = value;
+                }
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = await response.text();
+                }
+                
+                displayResult('getResult', true, 'GET request successful!', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: headers,
+                    data: data
+                });
+                
+            } catch (error) {
+                displayResult('getResult', false, 'GET request failed!', {
+                    error: error.message
+                });
+            }
+        });
+
+        // Analyze CORS headers
+        function analyzeHeaders(headers) {
+            const analysis = document.getElementById('headerAnalysis');
+            analysis.innerHTML = '';
+            
+            const createAnalysisItem = (title, value, isOk, notes) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                
+                const titleEl = document.createElement('h3');
+                titleEl.textContent = title;
+                titleEl.className = isOk ? 'success' : 'error';
+                div.appendChild(titleEl);
+                
+                const valueEl = document.createElement('div');
+                valueEl.textContent = `Value: ${value || 'Not present'}`;
+                div.appendChild(valueEl);
+                
+                const statusEl = document.createElement('div');
+                statusEl.textContent = isOk ? '✅ OK' : '❌ Problem';
+                statusEl.className = isOk ? 'success' : 'error';
+                div.appendChild(statusEl);
+                
+                const notesEl = document.createElement('div');
+                notesEl.textContent = `Notes: ${notes}`;
+                div.appendChild(notesEl);
+                
+                return div;
+            };
+            
+            // Check Access-Control-Allow-Origin
+            const origin = headers['access-control-allow-origin'];
+            analysis.appendChild(createAnalysisItem(
+                'Access-Control-Allow-Origin',
+                origin,
+                origin === '*' || origin === window.location.origin,
+                origin === '*' ? 'Allows requests from any origin' : 
+                    (origin === window.location.origin ? 'Allows requests from this origin' : 
+                    'Does not allow requests from this origin')
+            ));
+            
+            // Check Access-Control-Allow-Methods
+            const methods = headers['access-control-allow-methods'];
+            analysis.appendChild(createAnalysisItem(
+                'Access-Control-Allow-Methods',
+                methods,
+                methods && methods.includes('GET'),
+                methods ? `Allows methods: ${methods}` : 'No methods allowed'
+            ));
+            
+            // Check Access-Control-Allow-Headers
+            const allowHeaders = headers['access-control-allow-headers'];
+            analysis.appendChild(createAnalysisItem(
+                'Access-Control-Allow-Headers',
+                allowHeaders,
+                allowHeaders && allowHeaders.includes('Content-Type'),
+                allowHeaders ? `Allows headers: ${allowHeaders}` : 'No headers allowed'
+            ));
+            
+            // Overall CORS status
+            const isOk = origin && (origin === '*' || origin === window.location.origin);
+            const overallDiv = document.createElement('div');
+            overallDiv.className = 'card';
+            const overallTitle = document.createElement('h2');
+            overallTitle.textContent = 'Overall CORS Status';
+            overallDiv.appendChild(overallTitle);
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.className = isOk ? 'success' : 'error';
+            statusDiv.textContent = isOk ? 
+                '✅ CORS is properly configured!' : 
+                '❌ CORS has configuration issues';
+            overallDiv.appendChild(statusDiv);
+            
+            analysis.appendChild(overallDiv);
+        }
+    </script>
+</body>
+</html>

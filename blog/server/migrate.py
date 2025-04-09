@@ -35,17 +35,17 @@ def import_posts(json_file):
         # Read JSON file
         with open(json_file, 'r', encoding='utf-8') as f:
             posts = json.load(f)
-        
+
         if not posts:
             print("No posts found in the JSON file")
             return
-        
+
         print(f"Found {len(posts)} posts to import")
-        
+
         # Connect to database
         conn = connect_to_db()
         cursor = conn.cursor()
-        
+
         # Import each post
         imported_count = 0
         for post in posts:
@@ -53,20 +53,20 @@ def import_posts(json_file):
             if not all(key in post for key in ['id', 'title', 'content', 'date']):
                 print(f"Skipping post with missing fields: {post.get('id', 'unknown')}")
                 continue
-            
+
             # Try to parse date
             try:
                 date_obj = datetime.datetime.fromisoformat(post['date'].replace('Z', '+00:00'))
             except ValueError:
                 print(f"Error parsing date for post {post['id']}, using current date")
                 date_obj = datetime.datetime.now()
-                
+
             now = datetime.datetime.now()
-            
+
             # Check if post already exists
             cursor.execute("SELECT id FROM posts WHERE id = %s", (post['id'],))
             existing = cursor.fetchone()
-            
+
             if existing:
                 # Update existing post
                 cursor.execute(
@@ -81,15 +81,15 @@ def import_posts(json_file):
                     (post['id'], post['title'], post['content'], date_obj, now)
                 )
                 imported_count += 1
-        
+
         # Commit changes
         conn.commit()
         print(f"Successfully imported {imported_count} posts, updated {len(posts) - imported_count} existing posts")
-        
+
         # Close connection
         cursor.close()
         conn.close()
-        
+
     except (FileNotFoundError, json.JSONDecodeError) as e:
         print(f"Error reading JSON file: {e}")
         sys.exit(1)
@@ -101,6 +101,6 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: python migrate.py <json_file>")
         sys.exit(1)
-    
+
     json_file = sys.argv[1]
     import_posts(json_file)

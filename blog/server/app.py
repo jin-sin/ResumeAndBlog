@@ -9,7 +9,32 @@ import os
 import datetime
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Disable Flask-CORS to avoid conflicts with our custom middleware
+# CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+# Custom CORS middleware with explicit header setting
+@app.after_request
+def add_cors_headers(response):
+    # IMPORTANT: Always add Access-Control-Allow-Origin and set to '*'
+    # This ensures the header is present in ALL responses
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    
+    # Allow credentials - note this may conflict with '*' origin
+    # response.headers['Access-Control-Allow-Credentials'] = 'true'
+    
+    # Allow specific headers
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
+    
+    # Allow specific methods
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    
+    # Max age for preflight requests
+    response.headers['Access-Control-Max-Age'] = '3600'
+    
+    # Add debugging log
+    print(f"Response Headers: {dict(response.headers)}")
+    
+    return response
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -67,6 +92,21 @@ def init_db():
         print("Failed to initialize database: Could not connect")
 
 # API Routes
+
+# Handle OPTIONS requests for CORS preflight - explicit headers for OPTIONS
+@app.route('/api/posts', methods=['OPTIONS'])
+@app.route('/api/posts/<post_id>', methods=['OPTIONS'])
+@app.route('/api/sitemap', methods=['OPTIONS'])
+def handle_options():
+    response = jsonify({'success': True})
+    
+    # Manually set CORS headers for preflight
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
+    response.headers['Access-Control-Max-Age'] = '3600'
+    
+    return response, 204
 
 # Get all posts
 @app.route('/api/posts', methods=['GET'])
@@ -260,7 +300,15 @@ def generate_sitemap():
         cursor.close()
         conn.close()
 
+# Add detailed error logging
+@app.errorhandler(Exception)
+def handle_error(e):
+    app.logger.error(f"Unhandled exception: {str(e)}")
+    return jsonify({"error": str(e)}), 500
+
 # Initialize database on startup
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, port=5000)
+    # Use 0.0.0.0 to allow connections from any IP
+    # Enable debug for development but disable in production
+    app.run(host='0.0.0.0', debug=True, port=5501)
