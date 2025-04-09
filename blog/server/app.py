@@ -153,36 +153,74 @@ def get_post(post_id):
 # Create a new post
 @app.route('/api/posts', methods=['POST'])
 def create_post():
+    # Enhanced debugging for request data
+    print("\n==== CREATE POST REQUEST ====")
+    print(f"Headers: {dict(request.headers)}")
+    print(f"Content-Type: {request.content_type}")
+    print(f"Request Data: {request.data}")
+    
+    # Parse request data with detailed error handling
+    try:
+        data = request.get_json(force=True, silent=True)
+        if data is None:
+            print("ERROR: Failed to parse JSON data")
+            return jsonify({"error": "Invalid JSON data"}), 400
+        print(f"Parsed JSON data: {data}")
+    except Exception as e:
+        print(f"ERROR parsing JSON: {str(e)}")
+        return jsonify({"error": f"Failed to parse JSON: {str(e)}"}), 400
+        
     conn = get_db_connection()
     if not conn:
+        print("ERROR: Database connection failed")
         return jsonify({"error": "Database connection failed"}), 500
-
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
-
-    data = request.get_json()
 
     # Validate required fields
     required_fields = ['id', 'title', 'content', 'date']
     for field in required_fields:
         if field not in data:
+            print(f"ERROR: Missing required field: {field}")
             return jsonify({"error": f"Missing required field: {field}"}), 400
 
+    print("All required fields present, creating post...")
     cursor = conn.cursor()
     try:
         now = datetime.datetime.now()
-        cursor.execute(
-            "INSERT INTO posts (id, title, content, date, updated_at) VALUES (%s, %s, %s, %s, %s)",
-            (data['id'], data['title'], data['content'], data['date'], now)
-        )
-        conn.commit()
-        return jsonify({"success": True, "id": data['id']}), 201
-    except mysql.connector.Error as err:
-        print(f"Error creating post: {err}")
-        return jsonify({"error": "Failed to create post"}), 500
+        # Handle date parsing with error handling
+        try:
+            input_date = data['date']
+            if isinstance(input_date, str):
+                # Try to parse the date string
+                parsed_date = datetime.datetime.fromisoformat(input_date.replace('Z', '+00:00'))
+            else:
+                parsed_date = input_date
+            
+            # Debug the date values
+            print(f"Input date: {input_date}, Parsed date: {parsed_date}")
+        except Exception as e:
+            print(f"ERROR parsing date: {str(e)}")
+            return jsonify({"error": f"Invalid date format: {str(e)}"}), 400
+        
+        # Execute the insert query
+        try:
+            print(f"Executing SQL with values: id={data['id']}, title={data['title']}, content_len={len(data['content'])}, date={parsed_date}, now={now}")
+            cursor.execute(
+                "INSERT INTO posts (id, title, content, date, updated_at) VALUES (%s, %s, %s, %s, %s)",
+                (data['id'], data['title'], data['content'], parsed_date, now)
+            )
+            conn.commit()
+            print("Post created successfully")
+            return jsonify({"success": True, "id": data['id']}), 201
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({"error": f"Database error: {str(err)}"}), 500
+    except Exception as e:
+        print(f"Unexpected error creating post: {str(e)}")
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
     finally:
         cursor.close()
         conn.close()
+        print("Database connection closed")
 
 # Update an existing post
 @app.route('/api/posts/<post_id>', methods=['PUT'])

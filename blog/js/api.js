@@ -82,6 +82,23 @@ export async function fetchPost(id) {
 // Create a new post
 export async function createPost(post) {
     try {
+        console.log('Creating post with data:', post);
+        console.log('Request URL:', `${API_BASE_URL}/posts`);
+        
+        // Validate post data
+        if (!post.id || !post.title || !post.content || !post.date) {
+            console.error('Missing required fields in post data');
+            throw new Error('Post data is incomplete');
+        }
+        
+        // Ensure date is in correct format
+        if (!(post.date instanceof String) && typeof post.date !== 'string') {
+            post.date = new Date(post.date).toISOString();
+        }
+        
+        const postData = JSON.stringify(post);
+        console.log('Post data to send:', postData);
+        
         const response = await fetch(`${API_BASE_URL}/posts`, {
             method: 'POST',
             mode: 'cors',
@@ -90,16 +107,39 @@ export async function createPost(post) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(post),
+            body: postData,
         });
 
+        console.log('Response status:', response.status);
+        
+        // Get text response first for debugging
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            // Try to parse error response
+            let errorDetail = 'Unknown error';
+            try {
+                const errorData = JSON.parse(responseText);
+                errorDetail = errorData.error || errorDetail;
+            } catch (e) {
+                // If we can't parse JSON, use text response
+                errorDetail = responseText || `HTTP error: ${response.status}`;
+            }
+            
+            throw new Error(`API error: ${response.status} - ${errorDetail}`);
         }
 
-        return await response.json();
+        // Parse successful response
+        try {
+            return JSON.parse(responseText);
+        } catch (e) {
+            console.error('Error parsing JSON response:', e);
+            return { success: true, responseText }; // Fallback
+        }
     } catch (error) {
         handleApiError(error, 'createPost');
+        throw error; // Re-throw so the calling code knows there was an error
     }
 }
 

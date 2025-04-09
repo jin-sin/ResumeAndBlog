@@ -300,15 +300,27 @@ async function showEditor(postId = null) {
             // Save to the database
             if (postId) {
                 // Update existing post
-                await updatePost(postId, {
-                    title: title,
-                    content: content
-                });
-                console.log(`Post ${postId} updated successfully`);
+                try {
+                    await updatePost(postId, {
+                        title: title,
+                        content: content
+                    });
+                    console.log(`Post ${postId} updated successfully`);
+                } catch (updateError) {
+                    console.error('Failed to update post:', updateError);
+                    alert(`포스트 업데이트 실패: ${updateError.message || '알 수 없는 오류'}`);
+                    throw updateError;
+                }
             } else {
                 // Create new post
-                const result = await createPost(post);
-                console.log('New post created:', result);
+                try {
+                    const result = await createPost(post);
+                    console.log('New post created:', result);
+                } catch (createError) {
+                    console.error('Failed to create post:', createError);
+                    alert(`새 포스트 생성 실패: ${createError.message || '알 수 없는 오류'}`);
+                    throw createError;
+                }
             }
             
             // Update sitemap after saving
