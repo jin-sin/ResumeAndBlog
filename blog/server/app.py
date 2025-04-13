@@ -15,25 +15,26 @@ app = Flask(__name__)
 # Custom CORS middleware with explicit header setting
 @app.after_request
 def add_cors_headers(response):
-    # IMPORTANT: Always add Access-Control-Allow-Origin and set to '*'
-    # This ensures the header is present in ALL responses
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Vary'] = 'Origin'
+
     # Allow credentials - note this may conflict with '*' origin
-    # response.headers['Access-Control-Allow-Credentials'] = 'true'
-    
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+
     # Allow specific headers
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
-    
+
     # Allow specific methods
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    
+
     # Max age for preflight requests
     response.headers['Access-Control-Max-Age'] = '3600'
-    
+
     # Add debugging log
     print(f"Response Headers: {dict(response.headers)}")
-    
+
     return response
 
 # Load environment variables
@@ -98,15 +99,16 @@ def init_db():
 @app.route('/api/posts/<post_id>', methods=['OPTIONS'])
 @app.route('/api/sitemap', methods=['OPTIONS'])
 def handle_options():
-    response = jsonify({'success': True})
-    
-    # Manually set CORS headers for preflight
+    response = jsonify({'success': True})  # ← 이거 자체가 JSON body임
+    response.status_code = 200  # ← 이 부분 추가
+
+    # CORS headers
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
     response.headers['Access-Control-Max-Age'] = '3600'
-    
-    return response, 204
+
+    return response
 
 # Get all posts
 @app.route('/api/posts', methods=['GET'])
@@ -158,7 +160,7 @@ def create_post():
     print(f"Headers: {dict(request.headers)}")
     print(f"Content-Type: {request.content_type}")
     print(f"Request Data: {request.data}")
-    
+
     # Parse request data with detailed error handling
     try:
         data = request.get_json(force=True, silent=True)
@@ -169,7 +171,7 @@ def create_post():
     except Exception as e:
         print(f"ERROR parsing JSON: {str(e)}")
         return jsonify({"error": f"Failed to parse JSON: {str(e)}"}), 400
-        
+
     conn = get_db_connection()
     if not conn:
         print("ERROR: Database connection failed")
@@ -194,13 +196,13 @@ def create_post():
                 parsed_date = datetime.datetime.fromisoformat(input_date.replace('Z', '+00:00'))
             else:
                 parsed_date = input_date
-            
+
             # Debug the date values
             print(f"Input date: {input_date}, Parsed date: {parsed_date}")
         except Exception as e:
             print(f"ERROR parsing date: {str(e)}")
             return jsonify({"error": f"Invalid date format: {str(e)}"}), 400
-        
+
         # Execute the insert query
         try:
             print(f"Executing SQL with values: id={data['id']}, title={data['title']}, content_len={len(data['content'])}, date={parsed_date}, now={now}")

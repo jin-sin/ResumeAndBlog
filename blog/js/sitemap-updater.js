@@ -1,33 +1,91 @@
-// Sitemap updater with manual download fallback
-import { getAllPosts } from './storage.js';
+// Automatic sitemap updater for the blog
+import { fetchAllPosts, fetchSitemap } from './api.js';
 
 // Base domain for the sitemap
 const BASE_URL = 'https://orange-man.xyz';
 
-// Function to update or download the sitemap
+// Function to update the sitemap.xml file
 export async function updateSitemapXML() {
     try {
-        // Get all posts for the sitemap
-        const posts = await getAllPosts();
+        console.log('Updating sitemap.xml...');
         
-        // Generate new sitemap XML content
-        const sitemapContent = generateSitemapContent(posts);
+        // Get sitemap content directly from the API
+        const sitemapContent = await fetchSitemap();
+        console.log('Received sitemap content from API');
         
-        // Browsers can't directly modify files on the server
-        // So we'll prompt the user to download the updated sitemap
-        downloadSitemap(sitemapContent);
+        // Update the sitemap.xml file on the server
+        const success = await uploadSitemapToServer(sitemapContent);
         
-        // Let the user know what's happening
-        showUpdateNotification();
-        
-        return true;
+        if (success) {
+            console.log('sitemap.xml updated successfully');
+            showSuccessNotification();
+            return true;
+        } else {
+            console.log('Could not automatically update sitemap.xml, providing download option');
+            downloadSitemap(sitemapContent);
+            showDownloadNotification();
+            return false;
+        }
     } catch (error) {
-        console.error('Error generating sitemap:', error);
+        console.error('Error updating sitemap:', error);
+        
+        // Fallback: generate sitemap locally if API fails
+        try {
+            console.log('Attempting to generate sitemap locally...');
+            const posts = await fetchAllPosts();
+            const sitemapContent = generateSitemapContent(posts);
+            downloadSitemap(sitemapContent);
+            showDownloadNotification();
+            return false;
+        } catch (fallbackError) {
+            console.error('Fallback generation failed:', fallbackError);
+            return false;
+        }
+    }
+}
+
+// Try to upload the sitemap directly to the server
+async function uploadSitemapToServer(content) {
+    try {
+        // Get authentication from the auth module (must be admin)
+        const sitemapToken = localStorage.getItem('sitemap_token') || 'YOUR_SECRET_TOKEN';
+        
+        // Make a POST request to a server-side script that updates the sitemap
+        const response = await fetch('/update-sitemap.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain',
+                'Authorization': `Bearer ${sitemapToken}`
+            },
+            body: content
+        });
+        
+        if (response.ok) {
+            // Try to parse response for additional info
+            try {
+                const result = await response.json();
+                console.log('Sitemap update result:', result);
+            } catch (e) {
+                // Ignore parsing errors
+            }
+            return true;
+        } else {
+            console.warn('Server returned error when updating sitemap:', response.status);
+            try {
+                const errorData = await response.json();
+                console.warn('Error details:', errorData);
+            } catch (e) {
+                // Ignore parsing errors
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Error uploading sitemap to server:', error);
         return false;
     }
 }
 
-// Generate sitemap XML content
+// Generate sitemap XML content (fallback method)
 function generateSitemapContent(posts) {
     // Start XML content
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -66,7 +124,7 @@ function generateSitemapContent(posts) {
     return xml;
 }
 
-// Download sitemap file
+// Download sitemap file as fallback
 function downloadSitemap(content) {
     // Create a blob with the sitemap content
     const blob = new Blob([content], { type: 'application/xml' });
@@ -88,8 +146,26 @@ function downloadSitemap(content) {
     }, 100);
 }
 
-// Display notification about manual sitemap update
-function showUpdateNotification() {
+// Notification when sitemap is automatically updated
+function showSuccessNotification() {
+    showNotification(
+        'sitemap.xml이 자동으로 업데이트 되었습니다',
+        '검색 엔진은 다음 크롤링 시 새로운 콘텐츠를 색인화할 것입니다.',
+        '#3DDC84'
+    );
+}
+
+// Notification when sitemap needs manual upload
+function showDownloadNotification() {
+    showNotification(
+        'sitemap.xml이 다운로드 되었습니다',
+        '이 파일을 웹사이트 루트 디렉토리에 업로드하여 검색 엔진 색인을 업데이트하세요.',
+        '#FF9800'
+    );
+}
+
+// Generic notification function
+function showNotification(title, message, color) {
     // Check if notification already shown recently (avoid spamming)
     const lastNotified = localStorage.getItem('sitemap_notification_time');
     const now = Date.now();
@@ -105,7 +181,7 @@ function showUpdateNotification() {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        background-color: #3DDC84;
+        background-color: ${color};
         color: white;
         padding: 12px 16px;
         border-radius: 6px;
@@ -116,8 +192,8 @@ function showUpdateNotification() {
     `;
     
     notification.innerHTML = `
-        <p><strong>sitemap.xml이 다운로드 되었습니다</strong></p>
-        <p style="margin-top: 5px;">이 파일을 웹사이트 루트 디렉토리에 업로드하여 검색 엔진 색인을 업데이트하세요.</p>
+        <p><strong>${title}</strong></p>
+        <p style="margin-top: 5px;">${message}</p>
     `;
     
     document.body.appendChild(notification);

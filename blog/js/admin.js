@@ -59,6 +59,12 @@ loginForm.addEventListener('submit', async (e) => {
     if (await verifyPassword(password)) {
         // Store auth token
         localStorage.setItem(AUTH_TOKEN_KEY, 'true');
+        
+        // Set sitemap update token based on password
+        // This is a simple way to derive a token that only admins can access
+        const sitemapToken = btoa(`sitemap:${password}`);
+        localStorage.setItem('sitemap_token', sitemapToken);
+        
         showAdminPanel();
     } else {
         loginError.style.display = 'block';
