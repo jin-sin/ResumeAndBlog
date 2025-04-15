@@ -15,26 +15,39 @@ app = Flask(__name__)
 # Custom CORS middleware with explicit header setting
 @app.after_request
 def add_cors_headers(response):
+    # Enhanced CORS debugging
+    print(f"\n==== CORS DEBUG ====")
+    print(f"Request Method: {request.method}")
+    print(f"Request Path: {request.path}")
+    print(f"Request Headers: {dict(request.headers)}")
+    
     origin = request.headers.get('Origin')
+    print(f"Origin Header: {origin}")
+    
     if origin:
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Vary'] = 'Origin'
-
-    # Allow credentials - note this may conflict with '*' origin
+        print(f"Setting Access-Control-Allow-Origin to: {origin}")
+    else:
+        print("WARNING: No Origin header found in request!")
+    
+    # Allow credentials
     response.headers['Access-Control-Allow-Credentials'] = 'true'
-
+    
     # Allow specific headers
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
-
+    
     # Allow specific methods
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-
+    
     # Max age for preflight requests
     response.headers['Access-Control-Max-Age'] = '3600'
-
-    # Add debugging log
+    
+    # Add response headers debugging
+    print(f"Response Status: {response.status_code}")
     print(f"Response Headers: {dict(response.headers)}")
-
+    print(f"==== END CORS DEBUG ====\n")
+    
     return response
 
 # Load environment variables
@@ -99,19 +112,46 @@ def init_db():
 @app.route('/api/posts/<post_id>', methods=['OPTIONS'])
 @app.route('/api/sitemap', methods=['OPTIONS'])
 def handle_options():
-    response = jsonify({'success': True})  # ← 이거 자체가 JSON body임
-    response.status_code = 200  # ← 이 부분 추가
-
+    print(f"\n==== OPTIONS REQUEST DEBUG ====")
+    print(f"OPTIONS Request Headers: {dict(request.headers)}")
+    print(f"Access-Control-Request-Method: {request.headers.get('Access-Control-Request-Method')}")
+    print(f"Access-Control-Request-Headers: {request.headers.get('Access-Control-Request-Headers')}")
+    
+    # Create response with 200 OK status
+    response = jsonify({'success': True})
+    response.status_code = 200
+    
+    # Get the origin and set appropriate headers
     origin = request.headers.get('Origin')
+    print(f"Origin: {origin}")
+    
     if origin:
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Vary'] = 'Origin'
-
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
+    
+    # Handle requested method
+    requested_method = request.headers.get('Access-Control-Request-Method')
+    if requested_method:
+        response.headers['Access-Control-Allow-Methods'] = requested_method
+    else:
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    
+    # Handle requested headers
+    requested_headers = request.headers.get('Access-Control-Request-Headers')
+    if requested_headers:
+        response.headers['Access-Control-Allow-Headers'] = requested_headers
+    else:
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
+    
+    # Enable credentials
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    
+    # Set preflight cache duration
     response.headers['Access-Control-Max-Age'] = '3600'
-
+    
+    print(f"OPTIONS Response Headers: {dict(response.headers)}")
+    print(f"==== END OPTIONS REQUEST DEBUG ====\n")
+    
     return response
 
 # Get all posts
@@ -231,40 +271,74 @@ def create_post():
 # Update an existing post
 @app.route('/api/posts/<post_id>', methods=['PUT'])
 def update_post(post_id):
+    # Enhanced request debugging
+    print("\n==== UPDATE POST REQUEST ====")
+    print(f"Headers: {dict(request.headers)}")
+    print(f"Content-Type: {request.content_type}")
+    print(f"Request Data: {request.data}")
+    print(f"Post ID: {post_id}")
+    
     conn = get_db_connection()
     if not conn:
+        print("ERROR: Database connection failed")
         return jsonify({"error": "Database connection failed"}), 500
 
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
-
-    data = request.get_json()
-
-    # Validate required fields
-    required_fields = ['title', 'content']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"Missing required field: {field}"}), 400
-
-    cursor = conn.cursor()
+    # Parse request data with detailed error handling
     try:
-        now = datetime.datetime.now()
-        cursor.execute(
-            "UPDATE posts SET title = %s, content = %s, updated_at = %s WHERE id = %s",
-            (data['title'], data['content'], now, post_id)
-        )
-        conn.commit()
+        # Check if the request is JSON
+        if not request.is_json:
+            print(f"ERROR: Request is not JSON. Content-Type: {request.content_type}")
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        # Try to parse JSON with detailed error handling
+        try:
+            data = request.get_json(force=False, silent=True)
+            if data is None:
+                print("ERROR: Failed to parse JSON data")
+                return jsonify({"error": "Invalid JSON data"}), 400
+            print(f"Parsed JSON data: {data}")
+        except Exception as e:
+            print(f"ERROR parsing JSON: {str(e)}")
+            return jsonify({"error": f"Failed to parse JSON: {str(e)}"}), 400
 
-        if cursor.rowcount == 0:
-            return jsonify({"error": "Post not found"}), 404
+        # Validate required fields
+        required_fields = ['title', 'content']
+        for field in required_fields:
+            if field not in data:
+                print(f"ERROR: Missing required field: {field}")
+                return jsonify({"error": f"Missing required field: {field}"}), 400
 
-        return jsonify({"success": True, "id": post_id})
-    except mysql.connector.Error as err:
-        print(f"Error updating post: {err}")
-        return jsonify({"error": "Failed to update post"}), 500
+        print("All required fields present, updating post...")
+        cursor = conn.cursor()
+        try:
+            now = datetime.datetime.now()
+            print(f"Executing SQL with values: title={data['title']}, content_len={len(data['content'])}, updated_at={now}, id={post_id}")
+            
+            cursor.execute(
+                "UPDATE posts SET title = %s, content = %s, updated_at = %s WHERE id = %s",
+                (data['title'], data['content'], now, post_id)
+            )
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                print(f"ERROR: Post not found with ID: {post_id}")
+                return jsonify({"error": "Post not found"}), 404
+
+            print("Post updated successfully")
+            return jsonify({"success": True, "id": post_id})
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({"error": f"Database error: {str(err)}"}), 500
+    except Exception as e:
+        print(f"Unexpected error updating post: {str(e)}")
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+        print("Database connection closed")
+        print("==== END UPDATE POST REQUEST ====\n")
 
 # Delete a post
 @app.route('/api/posts/<post_id>', methods=['DELETE'])

@@ -41,7 +41,7 @@ export async function fetchAllPosts() {
         const response = await fetch(`${API_BASE_URL}/posts`, {
             method: 'GET',
             mode: 'cors', // Explicit CORS mode
-            // credentials: 'include', // Removed - incompatible with Access-Control-Allow-Origin: '*'
+            credentials: 'include', // Re-enable credentials
             headers: {
                 'Accept': 'application/json'
             }
@@ -63,7 +63,7 @@ export async function fetchPost(id) {
         const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
             method: 'GET',
             mode: 'cors',
-            // credentials: 'include', // Removed - incompatible with Access-Control-Allow-Origin: '*'
+            credentials: 'include', // Re-enable credentials
             headers: {
                 'Accept': 'application/json'
             }
@@ -102,7 +102,7 @@ export async function createPost(post) {
         const response = await fetch(`${API_BASE_URL}/posts`, {
             method: 'POST',
             mode: 'cors',
-            // credentials: 'include', // Removed - incompatible with Access-Control-Allow-Origin: '*'
+            credentials: 'include', // Re-enable credentials
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -146,10 +146,12 @@ export async function createPost(post) {
 // Update an existing post
 export async function updatePost(id, post) {
     try {
+        console.log('Updating post:', id, post);
+        
         const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
             method: 'PUT',
             mode: 'cors',
-            // credentials: 'include', // Removed - incompatible with Access-Control-Allow-Origin: '*'
+            credentials: 'include', // Re-enable credentials - server is configured to support this
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -157,13 +159,32 @@ export async function updatePost(id, post) {
             body: JSON.stringify(post),
         });
 
+        // Get text response first for debugging
+        const responseText = await response.text();
+        console.log('Update response text:', responseText);
+
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            let errorDetail = 'Unknown error';
+            try {
+                const errorData = JSON.parse(responseText);
+                errorDetail = errorData.error || errorDetail;
+            } catch (e) {
+                errorDetail = responseText || `HTTP error: ${response.status}`;
+            }
+            
+            throw new Error(`API error: ${response.status} - ${errorDetail}`);
         }
 
-        return await response.json();
+        // Parse successful response
+        try {
+            return JSON.parse(responseText);
+        } catch (e) {
+            console.error('Error parsing JSON response:', e);
+            return { success: true, responseText }; // Fallback
+        }
     } catch (error) {
         handleApiError(error, `updatePost(${id})`);
+        throw error; // Re-throw so the calling code knows there was an error
     }
 }
 
@@ -173,7 +194,7 @@ export async function deletePost(id) {
         const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
             method: 'DELETE',
             mode: 'cors',
-            // credentials: 'include', // Removed - incompatible with Access-Control-Allow-Origin: '*'
+            credentials: 'include', // Re-enable credentials
             headers: {
                 'Accept': 'application/json'
             }
@@ -195,7 +216,7 @@ export async function fetchSitemap() {
         const response = await fetch(`${API_BASE_URL}/sitemap`, {
             method: 'GET',
             mode: 'cors',
-            // credentials: 'include', // Removed - incompatible with Access-Control-Allow-Origin: '*'
+            credentials: 'include', // Re-enable credentials
             headers: {
                 'Accept': 'application/xml'
             }
