@@ -20,34 +20,34 @@ def add_cors_headers(response):
     print(f"Request Method: {request.method}")
     print(f"Request Path: {request.path}")
     print(f"Request Headers: {dict(request.headers)}")
-    
+
     origin = request.headers.get('Origin')
     print(f"Origin Header: {origin}")
-    
+
     if origin:
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Vary'] = 'Origin'
         print(f"Setting Access-Control-Allow-Origin to: {origin}")
     else:
         print("WARNING: No Origin header found in request!")
-    
+
     # Allow credentials
     response.headers['Access-Control-Allow-Credentials'] = 'true'
-    
+
     # Allow specific headers
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
-    
+
     # Allow specific methods
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    
+
     # Max age for preflight requests
     response.headers['Access-Control-Max-Age'] = '3600'
-    
+
     # Add response headers debugging
     print(f"Response Status: {response.status_code}")
     print(f"Response Headers: {dict(response.headers)}")
     print(f"==== END CORS DEBUG ====\n")
-    
+
     return response
 
 # Load environment variables
@@ -112,47 +112,47 @@ def init_db():
 @app.route('/api/posts', methods=['OPTIONS'])
 @app.route('/api/posts/<post_id>', methods=['OPTIONS'])
 @app.route('/api/sitemap', methods=['OPTIONS'])
-def handle_options():
+def handle_options(post_id=None):
     print(f"\n==== OPTIONS REQUEST DEBUG ====")
     print(f"OPTIONS Request Headers: {dict(request.headers)}")
     print(f"Access-Control-Request-Method: {request.headers.get('Access-Control-Request-Method')}")
     print(f"Access-Control-Request-Headers: {request.headers.get('Access-Control-Request-Headers')}")
-    
+
     # Create response with 200 OK status
     response = jsonify({'success': True})
     response.status_code = 200
-    
+
     # Get the origin and set appropriate headers
     origin = request.headers.get('Origin')
     print(f"Origin: {origin}")
-    
+
     if origin:
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Vary'] = 'Origin'
-    
+
     # Handle requested method
     requested_method = request.headers.get('Access-Control-Request-Method')
     if requested_method:
         response.headers['Access-Control-Allow-Methods'] = requested_method
     else:
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    
+
     # Handle requested headers
     requested_headers = request.headers.get('Access-Control-Request-Headers')
     if requested_headers:
         response.headers['Access-Control-Allow-Headers'] = requested_headers
     else:
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, X-Requested-With'
-    
+
     # Enable credentials
     response.headers['Access-Control-Allow-Credentials'] = 'true'
-    
+
     # Set preflight cache duration
     response.headers['Access-Control-Max-Age'] = '3600'
-    
+
     print(f"OPTIONS Response Headers: {dict(response.headers)}")
     print(f"==== END OPTIONS REQUEST DEBUG ====\n")
-    
+
     return response
 
 # Get all posts
@@ -190,11 +190,11 @@ def get_post(post_id):
         if post:
             # Increment view count
             cursor.execute(
-                "UPDATE posts SET view_count = view_count + 1 WHERE id = %s", 
+                "UPDATE posts SET view_count = view_count + 1 WHERE id = %s",
                 (post_id,)
             )
             conn.commit()
-            
+
             # Return the post with updated view count
             post['view_count'] += 1  # Update in-memory as well
             return jsonify(json.loads(json.dumps(post, default=json_serial)))
@@ -288,7 +288,7 @@ def update_post(post_id):
     print(f"Content-Type: {request.content_type}")
     print(f"Request Data: {request.data}")
     print(f"Post ID: {post_id}")
-    
+
     conn = get_db_connection()
     if not conn:
         print("ERROR: Database connection failed")
@@ -300,7 +300,7 @@ def update_post(post_id):
         if not request.is_json:
             print(f"ERROR: Request is not JSON. Content-Type: {request.content_type}")
             return jsonify({"error": "Request must be JSON"}), 400
-        
+
         # Try to parse JSON with detailed error handling
         try:
             data = request.get_json(force=False, silent=True)
@@ -324,7 +324,7 @@ def update_post(post_id):
         try:
             now = datetime.datetime.now()
             print(f"Executing SQL with values: title={data['title']}, content_len={len(data['content'])}, updated_at={now}, id={post_id}")
-            
+
             # If view_count was provided, use it; otherwise, keep the existing value
             if 'view_count' in data:
                 cursor.execute(
