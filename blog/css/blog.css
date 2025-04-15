@@ -7,6 +7,40 @@
     --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* Post meta section styling */
+.post-meta, .blog-card-meta {
+    display: flex;
+    align-items: baseline; /* Align text baselines */
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.post-date, .blog-date {
+    margin-right: 15px;
+    line-height: normal;
+}
+
+.post-views, .blog-views {
+    padding-left: 15px;
+    border-left: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    line-height: normal;
+}
+
+/* Only show eye icon in single post view */
+.post-views::before {
+    content: '👁️';
+    margin-right: 5px;
+}
+
+/* Blog list specific styles */
+.blog-card-meta {
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+}
+
 /* Post content specific styles */
 .post-content {
     line-height: 1.8;

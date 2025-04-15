@@ -75,10 +75,11 @@ def import_posts(json_file):
                 )
                 print(f"Updated existing post: {post['id']}")
             else:
-                # Insert new post
+                # Insert new post with view_count if available
+                view_count = post.get('view_count', 0)
                 cursor.execute(
-                    "INSERT INTO posts (id, title, content, date, updated_at) VALUES (%s, %s, %s, %s, %s)",
-                    (post['id'], post['title'], post['content'], date_obj, now)
+                    "INSERT INTO posts (id, title, content, date, updated_at, view_count) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (post['id'], post['title'], post['content'], date_obj, now, view_count)
                 )
                 imported_count += 1
 
@@ -97,10 +98,44 @@ def import_posts(json_file):
         print(f"Database error: {err}")
         sys.exit(1)
 
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python migrate.py <json_file>")
+def add_view_count_column():
+    print("Starting migration: adding view_count column to posts table...")
+    
+    try:
+        # Connect to database
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        
+        # Check if view_count column already exists
+        cursor.execute("SHOW COLUMNS FROM posts LIKE 'view_count'")
+        column_exists = cursor.fetchone()
+        
+        if column_exists:
+            print("Column 'view_count' already exists in posts table.")
+        else:
+            # Add the view_count column with default value of 0
+            cursor.execute("""
+                ALTER TABLE posts 
+                ADD COLUMN view_count INT NOT NULL DEFAULT 0
+            """)
+            conn.commit()
+            print("Successfully added 'view_count' column to posts table.")
+        
+        # Close connection
+        cursor.close()
+        conn.close()
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
         sys.exit(1)
 
-    json_file = sys.argv[1]
-    import_posts(json_file)
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python migrate.py <json_file> OR python migrate.py --add-view-count")
+        sys.exit(1)
+
+    if sys.argv[1] == "--add-view-count":
+        add_view_count_column()
+    else:
+        json_file = sys.argv[1]
+        import_posts(json_file)

@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS posts (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     date DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL
+    updated_at DATETIME NOT NULL,
+    view_count INT NOT NULL DEFAULT 0
 );
 
 -- Optional: Insert a sample post

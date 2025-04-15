@@ -92,7 +92,8 @@ def init_db():
                     title VARCHAR(255) NOT NULL,
                     content TEXT NOT NULL,
                     date DATETIME NOT NULL,
-                    updated_at DATETIME NOT NULL
+                    updated_at DATETIME NOT NULL,
+                    view_count INT NOT NULL DEFAULT 0
                 )
             ''')
             conn.commit()
@@ -182,10 +183,20 @@ def get_post(post_id):
 
     cursor = conn.cursor(dictionary=True)
     try:
+        # First, get the post
         cursor.execute("SELECT * FROM posts WHERE id = %s", (post_id,))
         post = cursor.fetchone()
 
         if post:
+            # Increment view count
+            cursor.execute(
+                "UPDATE posts SET view_count = view_count + 1 WHERE id = %s", 
+                (post_id,)
+            )
+            conn.commit()
+            
+            # Return the post with updated view count
+            post['view_count'] += 1  # Update in-memory as well
             return jsonify(json.loads(json.dumps(post, default=json_serial)))
         else:
             return jsonify({"error": "Post not found"}), 404
@@ -251,8 +262,8 @@ def create_post():
         try:
             print(f"Executing SQL with values: id={data['id']}, title={data['title']}, content_len={len(data['content'])}, date={parsed_date}, now={now}")
             cursor.execute(
-                "INSERT INTO posts (id, title, content, date, updated_at) VALUES (%s, %s, %s, %s, %s)",
-                (data['id'], data['title'], data['content'], parsed_date, now)
+                "INSERT INTO posts (id, title, content, date, updated_at, view_count) VALUES (%s, %s, %s, %s, %s, %s)",
+                (data['id'], data['title'], data['content'], parsed_date, now, data.get('view_count', 0))
             )
             conn.commit()
             print("Post created successfully")
@@ -314,10 +325,17 @@ def update_post(post_id):
             now = datetime.datetime.now()
             print(f"Executing SQL with values: title={data['title']}, content_len={len(data['content'])}, updated_at={now}, id={post_id}")
             
-            cursor.execute(
-                "UPDATE posts SET title = %s, content = %s, updated_at = %s WHERE id = %s",
-                (data['title'], data['content'], now, post_id)
-            )
+            # If view_count was provided, use it; otherwise, keep the existing value
+            if 'view_count' in data:
+                cursor.execute(
+                    "UPDATE posts SET title = %s, content = %s, updated_at = %s, view_count = %s WHERE id = %s",
+                    (data['title'], data['content'], now, data['view_count'], post_id)
+                )
+            else:
+                cursor.execute(
+                    "UPDATE posts SET title = %s, content = %s, updated_at = %s WHERE id = %s",
+                    (data['title'], data['content'], now, post_id)
+                )
             conn.commit()
 
             if cursor.rowcount == 0:
