@@ -74,6 +74,7 @@
             color: var(--secondary-color);
         }
 
+        .login-form input[type="text"],
         .login-form input[type="password"] {
             width: 100%;
             padding: 10px;
@@ -314,11 +315,15 @@
         <div id="login-section" class="login-container hidden">
             <h2 style="margin-bottom: 20px;">관리자 로그인</h2>
             <form id="login-form" class="login-form">
+                <label for="username">사용자 이름</label>
+                <input type="text" id="username" required>
+                
                 <label for="password">비밀번호</label>
                 <input type="password" id="password" required>
+                
                 <button type="submit" class="login-btn">로그인</button>
             </form>
-            <p id="login-error" style="color: red; margin-top: 10px; display: none;">비밀번호가 틀렸습니다.</p>
+            <p id="login-error" style="color: red; margin-top: 10px; display: none;">인증 오류</p>
         </div>
         
         <!-- Admin panel (hidden initially) -->

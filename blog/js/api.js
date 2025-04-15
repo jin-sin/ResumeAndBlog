@@ -1,6 +1,9 @@
 // API client for MariaDB backend
 // Synology hostname/IP with port for the Flask API
-const API_BASE_URL = 'https://api.orange-man.xyz/api';
+export const API_BASE_URL = 'https://api.orange-man.xyz/api';
+
+// Import authentication utilities
+import { addAuthHeader, isAuthenticated } from './auth.js';
 
 // Error handling helper with CORS debugging
 function handleApiError(error, operation) {
@@ -91,6 +94,11 @@ export async function createPost(post) {
             throw new Error('Post data is incomplete');
         }
         
+        // Check if authenticated
+        if (!isAuthenticated()) {
+            throw new Error('Authentication required for this operation');
+        }
+        
         // Ensure date is in correct format
         if (!(post.date instanceof String) && typeof post.date !== 'string') {
             post.date = new Date(post.date).toISOString();
@@ -102,11 +110,11 @@ export async function createPost(post) {
         const response = await fetch(`${API_BASE_URL}/posts`, {
             method: 'POST',
             mode: 'cors',
-            credentials: 'include', // Re-enable credentials
-            headers: {
+            credentials: 'include',
+            headers: addAuthHeader({
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            },
+            }),
             body: postData,
         });
 
@@ -148,14 +156,19 @@ export async function updatePost(id, post) {
     try {
         console.log('Updating post:', id, post);
         
+        // Check if authenticated
+        if (!isAuthenticated()) {
+            throw new Error('Authentication required for this operation');
+        }
+        
         const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
             method: 'PUT',
             mode: 'cors',
-            credentials: 'include', // Re-enable credentials - server is configured to support this
-            headers: {
+            credentials: 'include',
+            headers: addAuthHeader({
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            },
+            }),
             body: JSON.stringify(post),
         });
 
@@ -191,13 +204,18 @@ export async function updatePost(id, post) {
 // Delete a post
 export async function deletePost(id) {
     try {
+        // Check if authenticated
+        if (!isAuthenticated()) {
+            throw new Error('Authentication required for this operation');
+        }
+        
         const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
             method: 'DELETE',
             mode: 'cors',
-            credentials: 'include', // Re-enable credentials
-            headers: {
+            credentials: 'include',
+            headers: addAuthHeader({
                 'Accept': 'application/json'
-            }
+            })
         });
 
         if (!response.ok) {

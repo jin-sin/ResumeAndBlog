@@ -79,6 +79,35 @@ def json_serial(obj):
         return obj.isoformat()
     raise TypeError(f"Type {type(obj)} not serializable")
 
+# Import modules for authentication
+import hashlib
+import secrets
+import time
+import uuid
+
+# Store active sessions (in production, use Redis or a database)
+active_sessions = {}
+
+def generate_session_token():
+    """Generate a secure random token for sessions"""
+    return secrets.token_hex(32)
+
+def hash_password(password):
+    """Hash a password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_session(token):
+    """Verify if a session is valid and not expired"""
+    if token in active_sessions:
+        session = active_sessions[token]
+        # Check if session is expired (30 minutes)
+        if time.time() - session['created_at'] < 1800:
+            return True
+        else:
+            # Remove expired session
+            del active_sessions[token]
+    return False
+
 # Create database tables if they don't exist
 def init_db():
     conn = get_db_connection()
@@ -96,6 +125,33 @@ def init_db():
                     view_count INT NOT NULL DEFAULT 0
                 )
             ''')
+
+            # Create admin_users table for secure authentication
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS admin_users (
+                    id VARCHAR(36) PRIMARY KEY,
+                    username VARCHAR(50) UNIQUE NOT NULL,
+                    password_hash VARCHAR(255) NOT NULL,
+                    last_login DATETIME NULL,
+                    created_at DATETIME NOT NULL
+                )
+            ''')
+
+            # Check if admin user exists, otherwise create default admin
+            cursor.execute("SELECT COUNT(*) FROM admin_users")
+            user_count = cursor.fetchone()[0]
+
+            if user_count == 0:
+                admin_id = str(uuid.uuid4())
+                # Default hash for 'admin' password - change this immediately in production!
+                admin_hash = os.getenv('ADMIN_PASSWORD_HASH', '')
+                now = datetime.datetime.now()
+
+                cursor.execute(
+                    "INSERT INTO admin_users (id, username, password_hash, created_at) VALUES (%s, %s, %s, %s)",
+                    (admin_id, 'admin', admin_hash, now)
+                )
+
             conn.commit()
             print("Database initialized successfully")
         except mysql.connector.Error as err:
@@ -112,6 +168,9 @@ def init_db():
 @app.route('/api/posts', methods=['OPTIONS'])
 @app.route('/api/posts/<post_id>', methods=['OPTIONS'])
 @app.route('/api/sitemap', methods=['OPTIONS'])
+@app.route('/api/auth/login', methods=['OPTIONS'])
+@app.route('/api/auth/verify', methods=['OPTIONS'])
+@app.route('/api/auth/logout', methods=['OPTIONS'])
 def handle_options(post_id=None):
     print(f"\n==== OPTIONS REQUEST DEBUG ====")
     print(f"OPTIONS Request Headers: {dict(request.headers)}")
@@ -207,8 +266,32 @@ def get_post(post_id):
         cursor.close()
         conn.close()
 
+# Protected route middleware
+def require_auth(f):
+    def decorated(*args, **kwargs):
+        # Check for Authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Authentication required"}), 401
+
+        # Extract token
+        token = auth_header.split(' ')[1]
+
+        # Verify session
+        if not verify_session(token):
+            return jsonify({"error": "Invalid or expired session"}), 401
+
+        # Add user info to request
+        request.user = active_sessions[token]
+
+        return f(*args, **kwargs)
+
+    decorated.__name__ = f.__name__
+    return decorated
+
 # Create a new post
 @app.route('/api/posts', methods=['POST'])
+@require_auth
 def create_post():
     # Enhanced debugging for request data
     print("\n==== CREATE POST REQUEST ====")
@@ -281,6 +364,7 @@ def create_post():
 
 # Update an existing post
 @app.route('/api/posts/<post_id>', methods=['PUT'])
+@require_auth
 def update_post(post_id):
     # Enhanced request debugging
     print("\n==== UPDATE POST REQUEST ====")
@@ -360,6 +444,7 @@ def update_post(post_id):
 
 # Delete a post
 @app.route('/api/posts/<post_id>', methods=['DELETE'])
+@require_auth
 def delete_post(post_id):
     conn = get_db_connection()
     if not conn:
@@ -380,6 +465,122 @@ def delete_post(post_id):
     finally:
         cursor.close()
         conn.close()
+
+# Authentication endpoints
+
+# Login endpoint
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+
+    # Validate required fields
+    if 'username' not in data or 'password' not in data:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    username = data['username']
+    password = data['password']
+
+    # Get database connection
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Find user by username
+        cursor.execute("SELECT id, username, password_hash FROM admin_users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        # Verify password
+        password_hash = hash_password(password)
+        if password_hash != user['password_hash']:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        # Create session
+        session_token = generate_session_token()
+        now = time.time()
+
+        # Store session
+        active_sessions[session_token] = {
+            'user_id': user['id'],
+            'username': user['username'],
+            'created_at': now
+        }
+
+        # Update last login time
+        cursor.execute(
+            "UPDATE admin_users SET last_login = %s WHERE id = %s",
+            (datetime.datetime.now(), user['id'])
+        )
+        conn.commit()
+
+        # Return token (will be stored as HTTP-only cookie in frontend)
+        return jsonify({
+            "success": True,
+            "token": session_token,
+            "user": {
+                "username": user['username']
+            }
+        })
+    except mysql.connector.Error as err:
+        print(f"Error during login: {err}")
+        return jsonify({"error": "Authentication failed"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+# Verify session
+@app.route('/api/auth/verify', methods=['POST'])
+def verify():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+
+    # Validate token field
+    if 'token' not in data:
+        return jsonify({"error": "Session token is required"}), 400
+
+    token = data['token']
+
+    # Verify if session is valid
+    if verify_session(token):
+        session = active_sessions[token]
+        return jsonify({
+            "success": True,
+            "user": {
+                "username": session['username']
+            }
+        })
+    else:
+        return jsonify({"error": "Invalid or expired session"}), 401
+
+# Logout endpoint
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+
+    # Validate token field
+    if 'token' not in data:
+        return jsonify({"error": "Session token is required"}), 400
+
+    token = data['token']
+
+    # Remove session if exists
+    if token in active_sessions:
+        del active_sessions[token]
+
+    return jsonify({"success": True})
+
 
 # Generate sitemap.xml
 @app.route('/api/sitemap', methods=['GET'])

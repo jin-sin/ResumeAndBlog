@@ -1,8 +1,6 @@
 // Admin functionality for blog management
 import { renderMarkdown } from './markdown.js';
-// Import for localStorage - comment out when using the database
-// import { savePost, getAllPosts, getPost, deletePost } from './storage.js';
-import { verifyPassword, hasValidAccess, getAdminUrl } from './auth.js';
+import { login, logout, isAuthenticated, verifySession } from './auth.js';
 import { updateSitemapXML } from './sitemap-updater.js';
 // MariaDB API client for database operations
 import { fetchAllPosts, fetchPost, createPost, updatePost, deletePost as apiDeletePost, fetchSitemap } from './api.js';
@@ -18,27 +16,26 @@ const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 const logoutBtn = document.getElementById('logout-btn');
 const postListElement = document.getElementById('post-list');
-
-// Auth token storage key
-const AUTH_TOKEN_KEY = 'blog_admin_auth';
+const usernameField = document.getElementById('username');
+const passwordField = document.getElementById('password');
 
 // Initialize admin page
-function init() {
+async function init() {
     // Show loading screen
     accessCheck.classList.remove('hidden');
     
-    // Check if URL has valid access key
-    if (hasValidAccess()) {
-        // Check if already logged in
-        const authToken = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (authToken === 'true') {
+    try {
+        // Check if already authenticated with server
+        const sessionResult = await verifySession();
+        
+        if (sessionResult.success) {
             showAdminPanel();
         } else {
             showLoginForm();
         }
-    } else {
-        // Show access denied
-        showAccessDenied();
+    } catch (error) {
+        console.error('Error verifying session:', error);
+        showLoginForm();
     }
 }
 
@@ -54,27 +51,42 @@ function showAccessDenied() {
 // Handle login form submission
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const password = document.getElementById('password').value;
+    const username = usernameField.value;
+    const password = passwordField.value;
     
-    if (await verifyPassword(password)) {
-        // Store auth token
-        localStorage.setItem(AUTH_TOKEN_KEY, 'true');
+    // Disable form during login
+    usernameField.disabled = true;
+    passwordField.disabled = true;
+    
+    try {
+        const loginResult = await login(username, password);
         
-        // Set sitemap update token based on password
-        // This is a simple way to derive a token that only admins can access
-        const sitemapToken = btoa(`sitemap:${password}`);
-        localStorage.setItem('sitemap_token', sitemapToken);
-        
-        showAdminPanel();
-    } else {
+        if (loginResult.success) {
+            showAdminPanel();
+        } else {
+            loginError.textContent = loginResult.error || 'Invalid credentials';
+            loginError.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        loginError.textContent = 'Login failed: ' + error.message;
         loginError.style.display = 'block';
+    } finally {
+        // Re-enable form
+        usernameField.disabled = false;
+        passwordField.disabled = false;
     }
 });
 
 // Handle logout
-logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    showLoginForm();
+logoutBtn.addEventListener('click', async () => {
+    try {
+        await logout();
+        showLoginForm();
+    } catch (error) {
+        console.error('Logout error:', error);
+        showLoginForm(); // Still show login form even if error
+    }
 });
 
 // Show admin panel with post list
@@ -175,28 +187,29 @@ async function loadPostList() {
 }
 
 // Router handling
-function handleRoute() {
-    // First check if access is valid
-    if (!hasValidAccess()) {
-        showAccessDenied();
-        return;
-    }
-    
-    // Then check if authenticated
-    if (localStorage.getItem(AUTH_TOKEN_KEY) !== 'true') {
+async function handleRoute() {
+    // Check if authenticated with server
+    try {
+        const sessionResult = await verifySession();
+        
+        if (!sessionResult.success) {
+            showLoginForm();
+            return;
+        }
+        
+        const hash = window.location.hash || '#/';
+        
+        if (hash === '#/') {
+            showAdminPanel();
+        } else if (hash === '#/new') {
+            showEditor();
+        } else if (hash.startsWith('#/edit/')) {
+            const postId = hash.replace('#/edit/', '');
+            showEditor(postId);
+        }
+    } catch (error) {
+        console.error('Authentication check error:', error);
         showLoginForm();
-        return;
-    }
-    
-    const hash = window.location.hash || '#/';
-    
-    if (hash === '#/') {
-        showAdminPanel();
-    } else if (hash === '#/new') {
-        showEditor();
-    } else if (hash.startsWith('#/edit/')) {
-        const postId = hash.replace('#/edit/', '');
-        showEditor(postId);
     }
 }
 
