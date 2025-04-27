@@ -372,21 +372,57 @@
                     <div class="project-name">ABC Wallet</div>
                     <div class="date">2024년 3월 - 현재</div>
                     <ul class="sub-list">
-                        <li>MPC 기반의 Web3 Crypto Wallet</li>
-                        <li>Bitcoin, EVM(Ethereum, Polygon, Binance 등), Aptos 네트워크의 Native Coin, ERC20, NFT 서명 및 전송</li>
-                        <li>PlayStore 정기결제 시스템을 통한 Bitcoin 보안 강화</li>
-                        <li>Swap</li>
-                        <li>Staking</li>
+                        <li>MPC(Multi-Party Computation) 기반 Web3 Crypto Wallet 설계 및 개발</li>
+                        <li>Bitcoin, EVM(Ethereum/Polygon/Binance 등), Aptos 네트워크의 Native Coin, ERC20, NFT 서명·전송 지원</li>
+                        <li>PlayStore 정기결제 시스템을 통한 Bitcoin 지갑 보안 강화</li>
+                        <li>Swap, Staking 등 다양한 Web3 서비스 제공</li>
                     </ul>
                     <br>
-                    <b>사용기술</b>
-                    <div class="project-tech">Kotlin, Jetpack Compose, Coroutine, Room, Proto DataStore, Hilt, OkHttp +
-                        Retrofit2, Kotlinx.Serialization, Github Action, Biometric Auth, KeyStore
+                    <b>아키텍처 및 설계</b>
+                    <div>
+                        <ul class="sub-list">
+                            <li>
+                                <strong>App Architecture</strong> 기반으로 <strong>UI, Domain, Data Layer</strong>를 명확히 분리하고, <strong>DIP(Dependency Inversion Principle)</strong>에 따라 각 계층의 의존성을 인터페이스로 추상화.<br>
+                                <span style="color:#555;">UI 레이어는 도메인 계층(UseCase)만 참조, Repository/RemoteDataSource 등은 Hilt로 의존성 주입하여 테스트 및 유지보수 용이.</span>
+                            </li>
+                            <li>
+                                <strong>Jetpack Compose</strong>를 활용한 선언적 UI 구현. <code>@Stable</code>·<code>@Immutable</code> 애너테이션을 적용해 불필요한 recomposition 최소화.<br>
+                                <span style="color:#555;">LazyColumn, remember, derivedStateOf, key 등 Compose 성능 최적화 API 적극 활용. UI 상태는 ViewModel의 StateFlow로 관리, recomposition trace 및 JankStats로 프레임 드랍 구간을 정량 분석·개선.</span>
+                            </li>
+                            <li>
+                                <strong>Coroutine</strong> 기반 비동기 처리 최적화.<br>
+                                <span style="color:#555;">기존 AsyncTask/Callback 기반 로직을 Coroutine 및 viewModelScope로 이관, try-catch, Dispatcher 분리 등으로 앱 안정성 및 응답성 향상.</span>
+                            </li>
+                            <li>
+                                <strong>Room Database</strong>로 데이터 캐싱 및 오프라인 지원.<br>
+                                <span style="color:#555;">API 결과를 Room에 저장, 화면은 Flow로 최신 캐시/Remote 데이터 자동 갱신. 네트워크 실패 시 캐시 fallback으로 UX 안정성 확보.</span>
+                            </li>
+                            <li>
+                                <strong>JankStats, Layout Inspector</strong> 등 진단 도구 적극 도입.<br>
+                                <span style="color:#555;">Compose recomposition, Room 쿼리, 네트워크 IO 등 병목 구간을 측정·개선. Stable/Immutable 애너테이션, recomposition trace, 프레임 드랍 모니터링 등 고도화.</span>
+                            </li>
+                            <li>
+                                <strong>보안 및 민감 데이터 처리</strong>: 프라이빗키·시드 등 민감 정보는 Android KeyStore에서 직접 관리, 서명 연산은 Hash 데이터로만 수행하여 외부 노출 원천 차단.<br>
+                                <span style="color:#555;">지갑 생성/복구/서명/인증 등 모든 민감 데이터는 Biometric 인증·KeyStore 기반 암호화로 보호. MPC 프로토콜로 키 분산 저장, 서버와 end-to-end 암호화 통신.</span>
+                            </li>
+                            <li>
+                                <strong>블록체인 트랜잭션 처리</strong>: EVM 계열(GasPrice, GasLimit, Nonce) 계산을 네트워크 상태/잔고 기반으로 동적 산정. Bitcoin, Aptos 등 네트워크별 트랜잭션 서명 로직 별도 모듈화로 확장성·유지보수성 강화.<br>
+                            </li>
+                            <li>
+                                <strong>성능 및 보안 최적화</strong>: Compose recomposition 최소화, Room 쿼리 최적화, 네트워크 IO 분리, JankStats, Proguard/R8 등 다양한 진단·난독화 도구 통합.<br>
+                                <span style="color:#555;">최근에는 Compose의 @Stable/@Immutable 적용, recomposition trace, JankStats 프레임 드랍 모니터링, SQL 인덱스 최적화 등 고도화 진행.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <br>
+                    <b>주요 기술 스택</b>
+                    <div class="project-tech">
+                        Kotlin, Jetpack Compose, Coroutine, Room, Proto DataStore, Hilt, OkHttp + Retrofit2, Kotlinx.Serialization, Github Actions, Biometric Auth, Android KeyStore, JankStats, Proguard/R8
                     </div>
                     <br>
                     <b>App Architecture Layered</b>
                     <pre class="code-block">
-                            <code>
+<code>
 UI Layer
 │
 ├── MainActivity (UI 진입점)
@@ -396,46 +432,42 @@ UI Layer
 │   │       ├── AssetScreen
 │   │       └── 기타 Screens...
 │   │
-│   └── MainViewModel (UI 상태 관리)
-│       └── UseCase 호출
-│
+│   └── MainViewModel (UI 상태 관리, Flow 기반)
+│       └── UseCase 호출 (Domain 계층 인터페이스)
 │
 Domain Layer
 │
-├── Use Cases
+├── Use Cases (비즈니스 로직)
 │   ├── GetUserSettingsUseCase
 │   ├── AuthUseCase
 │   ├── PairWalletUseCase
 │   ├── BillingUseCase
-│   └── 기타 비즈니스 로직 UseCase들
-│
+│   └── 기타 UseCase
 │
 Data Layer
 │
-├── Repository (인터페이스로 추상화)
+├── Repository (인터페이스 추상화, DIP 원칙 적용)
 │   ├── UserDataRepository
 │   ├── AuthRepository
 │   ├── NetworkRepository
 │   ├── BillingRepository
 │   └── WalletRepository 등
 │
-│
 └── Data Sources (Local & Remote)
-		├─ Remote Data Source
-		│  ├── Retrofit API 서비스 (서버 데이터)
-		│  ├── Firebase Cloud Messaging (FCM)
-		│  └── Google BillingClient (결제 서버)
-		│
-		└─ Local Data Source
-				├── NetworkDao (Room 데이터베이스)
-				├── ProtoDataStore (로컬 저장소)
-				└── Security 모듈 (ABCSecurity 등)
-                            </code>
-                        </pre>
+    ├─ Remote Data Source
+    │  ├── Retrofit API 서비스 (서버 데이터)
+    │  ├── Firebase Cloud Messaging (FCM)
+    │  └── Google BillingClient (결제 서버)
+    │
+    └─ Local Data Source
+        ├── NetworkDao (Room 데이터베이스)
+        ├── ProtoDataStore (로컬 저장소)
+        └── Security 모듈 (KeyStore, Biometric, MPC)
+</code>
+                    </pre>
                     <br>
                     <div class="project-links">
-                        <a href="https://play.google.com/store/apps/details?id=io.myabcwallet.mpc" class="project-link">앱
-                            스토어</a>
+                        <a href="https://play.google.com/store/apps/details?id=io.myabcwallet.mpc" class="project-link">앱 스토어</a>
                     </div>
                 </div>
 
