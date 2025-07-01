@@ -328,7 +328,7 @@
                 <div class="experience-item">
                     <div class="timeline-dot"></div>
                     <div class="job-title">Appknot</div>
-                    <div class="date">2018년 12월 - 2023년 1월</div>
+                    <div class="date">2018.12 - 2023.01</div>
                     <ul>
                         <li>안드로이드 개발팀을 위한 모듈 개발로 앱 개발 패턴과 유지보수에 용이함을 주도</li>
                         <ul class="sub-list">
@@ -345,7 +345,7 @@
                 <div class="experience-item">
                     <div class="timeline-dot"></div>
                     <div class="job-title">이스터버니</div>
-                    <div class="date">2016년 12월 - 2017년 8월</div>
+                    <div class="date">2016.12 - 2017.08</div>
                     <ul>
                         <li>원더플 안드로이드 앱 개발</li>
                     </ul>
@@ -353,7 +353,7 @@
                 <div class="experience-item">
                     <div class="timeline-dot"></div>
                     <div class="job-title">무빙키</div>
-                    <div class="date">2016년 6월 - 2016년 12월</div>
+                    <div class="date">2016.06 - 2016.12</div>
                     <ul>
                         <li>틸트코드 안드로이드 앱 개발</li>
                     </ul>
@@ -365,8 +365,39 @@
             <h2>주요 프로젝트</h2>
             <div class="section-content">
                 <div class="project-item">
-                    <div class="project-name">ABC Wallet (멀티모듈 구조의 Android 앱)</div>
-                    <div class="date">2024년 3월 - 현재</div>
+                    <div class="project-name">Klip (가상자산 관리 앱)</div>
+                    <div class="date">2025.05 - 현재</div>
+                    <ul class="sub-list">
+                        <li><strong>200만 사용자 서비스 확장:</strong> 회사 인수 이후 기존 Klip 사용자들이 더 다양한 블록체인 네트워크를 사용할 수 있도록 멀티체인 지원 기능 확장. 사용자들이 여러 지갑을 사용해야 하는 불편함을 해소</li>
+                        <li><strong>모듈 재사용성 극대화:</strong> ABC Wallet에서 개발한 멀티체인 모듈을 Klip에 효율적으로 이식. Clean Architecture 기반 설계 덕분에 기존 코드의 70% 재사용이 가능하여 개발 시간을 크게 단축</li>
+                        <li><strong>Data/Domain Layer 구현:</strong> 기존 일부 EVM 계열 네트워크만 지원하던 Klip에 Bitcoin, Tron, Solana 등 다양한 네트워크를 추가. Repository 패턴과 UseCase를 통해 각 네트워크별 트랜잭션 처리 로직을 모듈화</li>
+                        <li><strong>확장 가능한 아키텍처 설계:</strong> 향후 새로운 블록체인 네트워크 추가 시 최소한의 코드 변경으로 지원할 수 있도록 추상화 계층 설계. 네트워크별 특성을 인터페이스로 분리하여 유지보수성 향상</li>
+                        <li><strong>기존 사용자 경험 유지:</strong> 200만 사용자가 익숙한 기존 UI/UX를 유지하면서 백그라운드에서 멀티체인 기능을 제공. 사용자 학습 곡선 없이 새로운 기능 이용 가능</li>
+                    </ul>
+                    <br>
+                    <b>기술적 성과</b>
+                    <div>
+                        <ul class="sub-list">
+                            <li><strong>Clean Architecture 활용:</strong> ABC Wallet의 잘 설계된 아키텍처를 기반으로 Klip의 기존 구조에 최소 침입적으로 통합</li>
+                            <li><strong>네트워크별 모듈화:</strong> Bitcoin, EVM, Tron, Solana 각각의 네트워크 특성에 맞는 Data Source와 Repository 구현</li>
+                            <li><strong>트랜잭션 처리 추상화:</strong> 서로 다른 트랜잭션 형태와 서명 방식을 통일된 인터페이스로 추상화</li>
+                            <li><strong>안정성 확보:</strong> 기존 200만 사용자 서비스에 영향 없이 새로운 기능을 점진적으로 배포 예정</li>
+                        </ul>
+                    </div>
+                    <br>
+                    <b>주요 기술 스택</b>
+                    <div class="project-tech">
+                        Kotlin, Clean Architecture, MVVM, Repository Pattern, UseCase, Hilt, Coroutine, Flow, Retrofit, Room, Bitcoin Core, Solana SDK
+                    </div>
+                    <br>
+                    <div class="project-links">
+                        <a href="https://play.google.com/store/apps/details?id=com.klipwallet.app" class="project-link">앱 스토어</a>
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-name">ABC Wallet (멀티모듈 구조의 가상자산 관리 앱)</div>
+                    <div class="date">2024.03 - 2025.05</div>
                     <ul class="sub-list">
                         <li><strong>기술적 복잡성 해결:</strong> 복잡한 블록체인 기술 구현 시 발생하는 사용자 경험 문제를 분석하고 해결책 제안. API 통합 최적화와 트랜잭션 처리 로직 개선으로 기존 암호화폐 거래 과정의 복잡함을 단순화하여 블록체인 초보자도 5분 내에 첫 거래 완료 가능</li>
                         <li><strong>사용자 실수 방지:</strong> 잘못된 주소 전송 등의 사용자 실수가 빈번히 발생하는 것을 발견하고, 주소 검증 로직과 확인 단계 강화를 개발팀에 제안. 클라이언트 사이드 검증과 백엔드 이중 확인 로직 구현으로 사용자 실수를 감소시켜 자산 손실 위험을 크게 줄임</li>
@@ -656,7 +687,7 @@ Data Layer
     </main>
 
     <footer>
-        <p>이 이력서는 2025년 6월에 마지막으로 업데이트되었습니다.</p>
+        <p>이 이력서는 2025년 7월에 마지막으로 업데이트되었습니다.</p>
     </footer>
 </div>
 
