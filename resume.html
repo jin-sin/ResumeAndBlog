@@ -359,28 +359,40 @@
                 <div class="project-item">
                     <div class="project-name">Klip (가상자산 관리 앱)</div>
                     <div class="date">2025.05 - 현재</div>
+
+                    <h4><strong>프로젝트 개요</strong></h4>
                     <ul class="sub-list">
-                        <li><strong>200만 사용자 서비스 확장 및 멀티체인 리드:</strong> 회사 인수 이후 Klip 프로젝트의 멀티체인 지원 기능을 리드하여 Bitcoin, Tron, Solana 등 다양한 블록체인 네트워크를 통합. 여러 지갑 사용의 불편함을 해소하고 사용자 편의성 및 서비스 충성도 향상</li>
-<!--                        <li><strong>비즈니스 성과에 기여:</strong> 멀티체인 도입 이후 월간 활성 사용자 수(MAU) 12% 증가, 멀티체인 기능 사용률 35% 도달. 전환율 향상 및 사용자 이탈률 감소로 이어짐</li>-->
-                        <li><strong>모듈 재사용성 극대화:</strong> ABC Wallet에서 개발한 멀티체인 모듈을 Klip에 효율적으로 이식. Clean Architecture 기반 설계 덕분에 기존 코드의 70% 재사용이 가능하여 개발 시간을 크게 단축</li>
-                        <li><strong>Data/Domain Layer 구현:</strong> 기존 일부 EVM 계열 네트워크만 지원하던 Klip에 Bitcoin, Tron, Solana 등 다양한 네트워크를 추가. Repository 패턴과 UseCase를 통해 각 네트워크별 트랜잭션 처리 로직을 모듈화</li>
-                        <li><strong>확장 가능한 아키텍처 설계:</strong> 향후 새로운 블록체인 네트워크 추가 시 최소한의 코드 변경으로 지원할 수 있도록 추상화 계층 설계. 네트워크별 특성을 인터페이스로 분리하여 유지보수성 향상</li>
-                        <li><strong>기존 사용자 경험 유지:</strong> 200만 사용자가 익숙한 기존 UI/UX를 유지하면서 백그라운드에서 멀티체인 기능을 제공. 사용자 학습 곡선 없이 새로운 기능 이용 가능</li>
+                        <li>카카오의 200만 사용자 가상자산 관리 앱 Klip의 멀티체인 지원 기능 개발</li>
+                        <li>기존 EVM 계열 네트워크에서 Bitcoin, Tron, Solana 등 다양한 블록체인 네트워크로 확장</li>
+                        <li>사용자가 여러 지갑 앱을 사용해야 하는 불편함을 해소하는 통합 솔루션 구축</li>
                     </ul>
                     <br>
-                    <b>기술적 성과</b>
-                    <div>
-                        <ul class="sub-list">
-                            <li><strong>Clean Architecture 활용:</strong> ABC Wallet의 잘 설계된 아키텍처를 기반으로 Klip의 기존 구조에 최소 침입적으로 통합</li>
-                            <li><strong>네트워크별 모듈화:</strong> Bitcoin, EVM, Tron, Solana 각각의 네트워크 특성에 맞는 Data Source와 Repository 구현</li>
-                            <li><strong>트랜잭션 처리 추상화:</strong> 서로 다른 트랜잭션 형태와 서명 방식을 통일된 인터페이스로 추상화</li>
-                            <li><strong>안정성 확보:</strong> 기존 200만 사용자 서비스에 영향 없이 새로운 기능을 점진적으로 배포 예정</li>
-                        </ul>
-                    </div>
+                    <h4><strong>주요 업무</strong></h4>
+                    <ul class="sub-list">
+                        <li><strong>멀티체인 아키텍처 설계:</strong> ABC Wallet에서 개발한 Clean Architecture 기반 멀티체인 모듈을 Klip에 이식</li>
+                        <li><strong>네트워크별 모듈 구현:</strong> Bitcoin, EVM, Tron, Solana 각각의 특성에 맞는 Data Source와 Repository 개발</li>
+                        <li><strong>트랜잭션 처리 로직 통합:</strong> 네트워크별 트랜잭션 처리 방식을 Repository 패턴과 UseCase를 통해 모듈화</li>
+                        <li><strong>기존 서비스 호환성 유지:</strong> 200만 사용자가 익숙한 UI/UX를 유지하며 백그라운드에서 멀티체인 기능 제공</li>
+                    </ul>
+                    <br>
+                    <h4><strong>문제 해결과정</strong></h4>
+                    <ul class="sub-list">
+                        <li><strong>아키텍처 호환성 문제:</strong> Klip의 기존 구조와 ABC Wallet의 Clean Architecture를 최소 침입적으로 통합하기 위해 추상화 계층 설계</li>
+                        <li><strong>네트워크별 차이점 해결:</strong> 서로 다른 트랜잭션 형태와 서명 방식을 통일된 인터페이스로 추상화하여 일관성 있는 사용자 경험 제공</li>
+                        <li><strong>코드 재사용성 극대화:</strong> Clean Architecture 기반 설계를 통해 ABC Wallet 코드의 70% 재사용 달성</li>
+                    </ul>
+                    <br>
+                    <h4><strong>기여 성과/결과</strong></h4>
+                    <ul class="sub-list">
+                        <li><strong>개발 효율성 향상:</strong> 기존 코드 70% 재사용으로 개발 시간 대폭 단축</li>
+                        <li><strong>확장성 확보:</strong> 새로운 블록체인 네트워크 추가 시 최소한의 코드 변경으로 지원 가능한 구조 구축</li>
+                        <li><strong>안정성 보장:</strong> 기존 200만 사용자 서비스에 영향 없이 새로운 기능을 점진적으로 배포할 수 있는 아키텍처 설계</li>
+                        <li><strong>사용자 경험 개선:</strong> 사용자 학습 곡선 없이 다양한 블록체인 네트워크 이용 가능</li>
+                    </ul>
                     <br>
                     <b>주요 기술 스택</b>
                     <div class="project-tech">
-                        Kotlin, Clean Architecture, MVVM, Repository Pattern, UseCase, Hilt, Coroutine, Flow, Retrofit, Room, Bitcoin Core, Solana SDK
+                        Kotlin, Clean Architecture, MVVM, Repository Pattern, UseCase, Hilt, Coroutine, Flow, Retrofit, Room, Bitcoin, Solana
                     </div>
                     <br>
                     <div class="project-links">
@@ -391,13 +403,38 @@
                 <div class="project-item">
                     <div class="project-name">ABC Wallet (멀티모듈 구조의 가상자산 관리 앱)</div>
                     <div class="date">2024.03 - 2025.05</div>
+
+                    <h4><strong>프로젝트 개요</strong></h4>
                     <ul class="sub-list">
-                        <li><strong>기술적 복잡성 해결:</strong> 복잡한 블록체인 기술 구현 시 발생하는 사용자 경험 문제를 분석하고 해결책 제안. API 통합 최적화와 트랜잭션 처리 로직 개선으로 기존 암호화폐 거래 과정의 복잡함을 단순화하여 블록체인 초보자도 5분 내에 첫 거래 완료 가능</li>
-                        <li><strong>사용자 실수 방지:</strong> 잘못된 주소 전송 등의 사용자 실수가 빈번히 발생하는 것을 발견하고, 주소 검증 로직과 확인 단계 강화를 개발팀에 제안. 클라이언트 사이드 검증과 백엔드 이중 확인 로직 구현으로 사용자 실수를 감소시켜 자산 손실 위험을 크게 줄임</li>
-                        <li><strong>다중 네트워크 통합:</strong> Bitcoin, Ethereum, Polygon 등 여러 블록체인 네트워크를 하나의 앱에서 관리할 수 있도록 구현. 사용자가 여러 지갑 앱을 사용해야 하는 불편을 해소</li>
-                        <li><strong>보안 강화로 안심 사용:</strong> Android KeyStore와 Biometric 인증으로 사용자 자산 보안 극대화. 보안 관련 사용자 문의가 감소하며 "안전하다"는 평가가 주요 피드백으로 등장</li>
-                        <li><strong>오프라인 지원:</strong> Room Database 캐싱으로 네트워크 불안정 상황에서도 자산 현황 확인 가능. 지하철이나 와이파이 없는 환경에서도 기본 기능 사용 가능하여 사용자 편의성 향상</li>
-                        <li><strong>비즈니스 성과에 기여:</strong> 월간 활성 사용자 수(MAU) 약 5,000명, 일간 사용자 수(DAU) 500명 수준으로 유지. 기능 고도화 이후 DAU가 평균 대비 74% 증가하며 사용자 재방문율과 잔존율 향상. 앱 스토어 평점 4.5 유지</li>
+                        <li>안랩 블록체인 컴퍼니의 멀티체인 가상자산 관리 앱 개발 프로젝트</li>
+                        <li>Bitcoin, Ethereum, Polygon 등 다양한 블록체인 네트워크를 하나의 앱에서 통합 관리</li>
+                        <li>MPC 기반 보안 기술과 Jetpack Compose를 활용한 최신 Android 앱 구축</li>
+                    </ul>
+                    <br>
+                    <h4><strong>주요 업무</strong></h4>
+                    <ul class="sub-list">
+                        <li><strong>App Architecture 기반 앱 설계:</strong> UI, Domain, Data Layer 3계층으로 분리하고 DIP 원칙에 따라 의존성 추상화</li>
+                        <li><strong>멀티체인 통합 시스템 구현:</strong> Bitcoin, EVM 계열 등 네트워크별 트랜잭션 처리 로직을 Repository 패턴으로 모듈화</li>
+                        <li><strong>Jetpack Compose UI 개발:</strong> 선언적 UI로 사용자 경험 개선, recomposition 최적화 및 성능 향상</li>
+                        <li><strong>보안 아키텍처 구현:</strong> Android KeyStore + Biometric 인증 + MPC 프로토콜 기반 보안 시스템 구축</li>
+                        <li><strong>테스트 및 CI/CD 구축:</strong> JUnit, Mockito, Espresso를 활용한 테스트 코드 작성 및 GitHub Actions 파이프라인 구축</li>
+                    </ul>
+                    <br>
+                    <h4><strong>문제 해결과정</strong></h4>
+                    <ul class="sub-list">
+                        <li><strong>블록체인 UX 복잡성 해결:</strong> 복잡한 암호화폐 거래 과정을 단순화하여 초보자도 5분 내 첫 거래 완료 가능하도록 UX 개선</li>
+                        <li><strong>사용자 실수 방지 시스템:</strong> 잘못된 주소 전송 등 빈번한 실수를 방지하기 위해 클라이언트/백엔드 이중 검증 로직 구현</li>
+                        <li><strong>Compose 성능 최적화:</strong> JankStats와 recomposition trace를 통해 UI 병목 구간을 분석하고 @Stable/@Immutable 애너테이션 적용</li>
+                        <li><strong>오프라인 지원:</strong> Room Database 캐싱으로 네트워크 불안정 환경에서도 자산 현황 확인 가능한 시스템 구축</li>
+                    </ul>
+                    <br>
+                    <h4><strong>기여 성과/결과</strong></h4>
+                    <ul class="sub-list">
+                        <li><strong>사용자 증가:</strong> MAU 5,000명, DAU 500명 달성. 기능 고도화 후 DAU 74% 증가</li>
+                        <li><strong>성능 개선:</strong> UI 렌더링 성능 30% 향상, 메모리 사용량 20% 감소</li>
+                        <li><strong>품질 향상:</strong> 테스트 커버리지 80% 달성, 크래시율 20% 감소, 버그 60% 감소</li>
+                        <li><strong>앱 평점:</strong> 앱 스토어 평점 4.5 달성 및 유지</li>
+                        <li><strong>팀 생산성:</strong> 개발 가이드라인 수립과 코드 리뷰 체계 구축으로 팀 생산성 40% 향상</li>
                     </ul>
                     <br>
                     <b>아키텍처 및 설계</b>
