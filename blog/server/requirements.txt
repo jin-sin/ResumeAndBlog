@@ -1,4 +1,33 @@
-flask==2.2.3
-flask-cors==3.0.10
-mysql-connector-python==8.0.32
-python-dotenv==1.0.0
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+LOG_DIR="/volume1/logs"
+mkdir -p "$LOG_DIR"
+
+# ================== Requirements installation (idempotent) ==================
+REQ_FILE="$SCRIPT_DIR/requirements.txt"
+REQ_STAMP="$SCRIPT_DIR/.deps_installed.stamp"
+PY="/usr/local/bin/python3"
+if [ ! -x "$PY" ]; then
+  PY="$(command -v python3 || true)"
+fi
+
+if [ -f "$REQ_FILE" ] && [ -n "${PY:-}" ]; then
+  # Install if never installed before or if requirements.txt is newer than the stamp
+  if [ ! -f "$REQ_STAMP" ] || [ "$REQ_FILE" -nt "$REQ_STAMP" ]; then
+    echo "Installing/updating Python dependencies from $REQ_FILE ..."
+    "$PY" -m pip install --upgrade pip
+    "$PY" -m pip install -r "$REQ_FILE"
+    touch "$REQ_STAMP"
+    echo "Dependencies installed."
+  else
+    echo "Dependencies up-to-date (stamp: $REQ_STAMP)."
+  fi
+else
+  if [ ! -f "$REQ_FILE" ]; then
+    echo "requirements.txt not found; skipping dependency installation"
+  elif [ -z "${PY:-}" ]; then
+    echo "python3 not found; skipping dependency installation"
+  fi
+fi
+# ===========================================================================
