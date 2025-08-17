@@ -610,9 +610,10 @@ Data Layer
                     <br>
                     <h4><strong>주요 업무</strong></h4>
                     <ul class="sub-list">
-                        <li><strong>라이브 스트리밍 시스템 개발:</strong> 액션캠 영상을 Android 앱을 통해 실시간으로 서버에 전송하는 스트리밍 파이프라인 구축</li>
-                        <li><strong>카메라 연동 기술 구현:</strong> Android Camera API와 액션캠 하드웨어 간의 통신 프로토콜 개발</li>
-                        <li><strong>실시간 영상 처리:</strong> 네트워크 상태에 따른 화질 자동 조절 및 영상 압축 최적화</li>
+                        <li><strong>듀얼 네트워크 연동 시스템 개발:</strong> Android ConnectivityManager API를 활용하여 WiFi로는 액션캠과 P2P 직접 연결, LTE로는 서버에 영상 스트리밍 전송하는 복합 네트워크 아키텍처 구축</li>
+                        <li><strong>FFmpeg NDK 포팅 및 영상 인코딩:</strong> 실시간 영상 인코딩이 필요한 구간에서 FFmpeg 라이브러리를 Android NDK에 포팅하여 네이티브 레벨 고성능 멀티미디어 처리 구현</li>
+                        <li><strong>하드웨어 통신 프로토콜 개발:</strong> 액션캠과의 직접적인 하드웨어 통신 및 제어 시스템 구현</li>
+                        <li><strong>실시간 영상 처리 최적화:</strong> 네트워크 상태에 따른 화질 자동 조절 및 영상 압축 최적화</li>
                         <li><strong>사용자 인터페이스 설계:</strong> 부동산 중개사와 고객이 직관적으로 사용할 수 있는 스트리밍 앱 UI/UX 개발</li>
                     </ul>
                     <br>
@@ -621,7 +622,7 @@ Data Layer
                         <li><strong>네트워크 안정성 확보:</strong> 불안정한 모바일 네트워크 환경에서도 끊김 없는 스트리밍을 위한 버퍼링 및 재연결 로직 구현</li>
                         <li><strong>하드웨어 호환성 문제:</strong> 다양한 액션캠 모델과의 호환성을 확보하기 위한 범용 연동 인터페이스 설계</li>
                         <li><strong>배터리 최적화:</strong> 장시간 스트리밍으로 인한 배터리 소모 문제를 해결하기 위한 전력 관리 시스템 구현</li>
-                        <li><strong>실시간 통신 지연 최소화:</strong> WebRTC 기술을 활용하여 영상 전송 지연 시간을 최소화</li>
+                        <li><strong>듀얼 네트워크 관리:</strong> ConnectivityManager를 통한 WiFi P2P 연결과 LTE 스트리밍의 동시 관리 및 네트워크 상태 모니터링</li>
                     </ul>
                     <br>
                     <h4><strong>기여 성과/결과</strong></h4>
@@ -634,7 +635,7 @@ Data Layer
                     <br>
                     <b>주요 기술 스택</b>
                     <div class="project-tech">
-                        Java, Android Camera API, WebRTC, RTMP, Socket.io, Retrofit, OkHttp, ExoPlayer, FFmpeg
+                        Java, Android ConnectivityManager API, Android Camera API, FFmpeg NDK, RTMP, Socket.io, Retrofit, OkHttp, ExoPlayer
                     </div>
                 </div>
 
