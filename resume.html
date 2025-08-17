@@ -426,6 +426,7 @@
                         <li><strong>App Architecture 기반 앱 설계:</strong> UI, Domain, Data Layer 3계층으로 분리하고 DIP 원칙에 따라 의존성 추상화</li>
                         <li><strong>멀티체인 통합 시스템 구현:</strong> Bitcoin, EVM 계열 등 네트워크별 트랜잭션 처리 로직을 Repository 패턴으로 모듈화</li>
                         <li><strong>Jetpack Compose UI 개발:</strong> 선언적 UI로 사용자 경험 개선, recomposition 최적화 및 성능 향상</li>
+                        <li><strong>다국어 지원 시스템 구현:</strong> 다양한 국가 사용자를 위한 다국어 리소스 관리 및 동적 언어 전환 기능 구현</li>
                         <li><strong>보안 아키텍처 구현:</strong> Android KeyStore + Biometric 인증 + MPC 프로토콜 기반 보안 시스템 구축</li>
                         <li><strong>테스트 및 CI/CD 구축:</strong> JUnit, Mockito, Espresso를 활용한 테스트 코드 작성 및 GitHub Actions 파이프라인 구축</li>
                     </ul>
@@ -480,6 +481,10 @@
                             <li>
                                 <strong>성능 및 보안 최적화</strong>: Compose recomposition 최소화, 네트워크 IO 분리, JankStats, Proguard/R8 등 다양한 진단·난독화 도구 통합.<br>
                                 <span style="color:#555;">최근에는 Compose의 @Stable/@Immutable 적용, recomposition trace, JankStats 프레임 드랍 모니터링 등 고도화 진행.</span>
+                            </li>
+                            <li>
+                                <strong>다국어 지원 시스템</strong>: 글로벌 사용자를 위한 다국어 리소스 관리 및 런타임 언어 변경 기능 구현.<br>
+                                <span style="color:#555;">Android String Resource 기반 다국어 지원, 사용자 설정에 따른 동적 언어 변경 등 글로벌 앱 개발 경험 확보.</span>
                             </li>
                             <li>
                                 <strong>테스트 코드 구현</strong>: JUnit, Mockito 을 활용한 단위 테스트 및 Espresso를 활용한 UI 테스트 설계 및 구현.<br>
